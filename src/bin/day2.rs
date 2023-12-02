@@ -11,18 +11,11 @@ fn main() {
 fn solve(input: &str) -> usize {
     let mut sum_impossible = 0;
     'game: for (id, line) in input.lines().enumerate().map(|(id, line)| (id + 1, line)) {
-        let (_start, rest) = line.split_once(": ").unwrap();
-        // let id: u32 = start.split_once(' ').unwrap().1.parse().unwrap();
-        // println!("{}", id);
-        for set in rest.split("; ") {
-            // dbg!(set);
-            let items = set.split(", ").collect_vec();
-            // dbg!(&items);
-
-            for x in items {
-                let (num, color) = x.split_once(' ').unwrap();
+        let (_start, game_input) = line.split_once(": ").unwrap();
+        for set in game_input.split("; ") {
+            for cubes in set.split(", ") {
+                let (num, color) = cubes.split_once(' ').unwrap();
                 let num: u32 = num.parse().unwrap();
-                // println!("{} {}", num, color);
                 let max_num = match color {
                     "red" => 12,
                     "green" => 13,
@@ -30,13 +23,9 @@ fn solve(input: &str) -> usize {
                     _ => panic!(""),
                 };
                 if num > max_num {
-                    // println!("Fail with id {id}");
                     continue 'game;
                 }
             }
-            // if let Some(r_i) = set.find(" red") {
-            //     let r_n = set.chars().collect_vec()[r_i - 1].parse();
-            // }
         }
         sum_impossible += id;
     }
@@ -45,20 +34,14 @@ fn solve(input: &str) -> usize {
 
 fn solve_2(input: &str) -> usize {
     let mut sum_power = 0;
-    'game: for (id, line) in input.lines().enumerate().map(|(id, line)| (id + 1, line)) {
-        let (_start, rest) = line.split_once(": ").unwrap();
-        // let id: u32 = start.split_once(' ').unwrap().1.parse().unwrap();
-        // println!("{}", id);
-        let (mut max_red, mut max_green, mut max_blue) = (0, 0, 0);
-        for set in rest.split("; ") {
-            // dbg!(set);
-            let items = set.split(", ").collect_vec();
-            // dbg!(&items);
+    for line in input.lines() {
+        let (_start, game_input) = line.split_once(": ").unwrap();
 
-            for x in items {
-                let (num, color) = x.split_once(' ').unwrap();
+        let (mut max_red, mut max_green, mut max_blue) = (0, 0, 0);
+        for set in game_input.split("; ") {
+            for cubes in set.split(", ") {
+                let (num, color) = cubes.split_once(' ').unwrap();
                 let num: u32 = num.parse().unwrap();
-                // println!("{} {}", num, color);
                 match color {
                     "red" => {
                         if num > max_red {
@@ -78,12 +61,8 @@ fn solve_2(input: &str) -> usize {
                     _ => panic!(""),
                 };
             }
-            // if let Some(r_i) = set.find(" red") {
-            //     let r_n = set.chars().collect_vec()[r_i - 1].parse();
-            // }
         }
         let power = max_red * max_green * max_blue;
-        // dbg!(power);
         sum_power += power as usize;
     }
     sum_power
