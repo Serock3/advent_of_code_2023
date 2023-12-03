@@ -11,50 +11,52 @@ fn main() {
 }
 
 fn solve(input: &str) -> usize {
-    let mut symbols = HashMap::new();
-    for (y, line) in input.lines().enumerate() {
-        for (x, symbol) in line.match_indices(|c: char| !c.is_numeric() && c != '.') {
-            // println!("{:?}", (x, y, symbol));
-            if let Some(double) = symbols.insert((x, y), symbol) {
-                panic!("{double}")
+    let mut symbols: HashMap<(usize, usize), &str> = input
+        .lines()
+        .enumerate()
+        .flat_map(|(y, line)| {
+            line.match_indices(|c: char| !c.is_numeric() && c != '.')
+                .map(move |(x, symbol)| ((x, y), symbol))
+        })
+        .collect();
+    input
+        .lines()
+        .enumerate()
+        .map(|(y, line)| {
+            let mut nums_with_pos: Vec<(usize, String)> = vec![];
+            let mut previous_char_was_num = false;
+            for (x, c) in line.char_indices() {
+                if !c.is_numeric() {
+                    previous_char_was_num = false;
+                    continue;
+                }
+                if !previous_char_was_num {
+                    nums_with_pos.push((x, String::from(c)));
+                    previous_char_was_num = true;
+                } else {
+                    nums_with_pos.last_mut().unwrap().1.push(c);
+                }
             }
-        }
-    }
-    let mut sum = 0;
-    for (y, line) in input.lines().enumerate() {
-        println!("line {y}");
-        let mut nums_with_pos: Vec<(usize, String)> = vec![];
-        let mut previous_char_was_num = false;
-        for (x, c) in line.char_indices() {
-            if !c.is_numeric() {
-                previous_char_was_num = false;
-                continue;
-            }
-            if !previous_char_was_num {
-                nums_with_pos.push((x, String::from(c)));
-                previous_char_was_num = true;
-            } else {
-                nums_with_pos.last_mut().unwrap().1.push(c);
-            }
-        }
-        for (start_x, num) in nums_with_pos {
-            let left_right = [(start_x.saturating_sub(1), y), (start_x + num.len(), y)];
+            nums_with_pos
+                .into_iter()
+                .filter_map(|(start_x, num)| {
+                    let left_right = [(start_x.saturating_sub(1), y), (start_x + num.len(), y)];
 
-            let line = (start_x.saturating_sub(1)..start_x + num.len() + 1);
-            let above = line.clone().map(|x| (x, y.saturating_sub(1)));
-            let below = line.clone().map(|x| (x, y + 1));
+                    let line = (start_x.saturating_sub(1)..start_x + num.len() + 1);
+                    let above = line.clone().map(|x| (x, y.saturating_sub(1)));
+                    let below = line.clone().map(|x| (x, y + 1));
 
-            let mut surroundings = above.chain(left_right).chain(below);
+                    let mut surroundings = above.chain(left_right).chain(below);
 
-            if surroundings.any(|pos| symbols.contains_key(&pos)) {
-                sum += num.parse::<usize>().unwrap();
-            } else {
-                println!("{num} at {start_x},{y} is not a part");
-            }
-        }
-    }
-
-    sum
+                    if surroundings.any(|pos| symbols.contains_key(&pos)) {
+                        Some(num.parse::<usize>().unwrap())
+                    } else {
+                        None
+                    }
+                })
+                .sum::<usize>()
+        })
+        .sum::<usize>()
 }
 
 fn solve_2(input: &str) -> usize {
