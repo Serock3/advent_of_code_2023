@@ -93,7 +93,7 @@ fn solve_2(input: &str) -> usize {
 
 #[test]
 fn test_example() {
-    let input = "1abc2char::from_digit(i as u32, 10).unwrap()
+    let input = "1abc2
     pqr3stu8vwx
     a1b2c3d4e5f
     treb7uchet";
