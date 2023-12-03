@@ -12,6 +12,10 @@ fn main() {
 
 //  521242 too low
 
+// line 6
+// 1 at 35,6 is not a part
+// 4 at 29,6 is not a part
+
 fn solve(input: &str) -> usize {
     let mut symbols = HashMap::new();
     for (y, line) in input.lines().enumerate() {
@@ -26,10 +30,8 @@ fn solve(input: &str) -> usize {
     }
     let mut sum = 0;
     for (y, line) in input.lines().enumerate() {
-        for num in line
-            .split(|c: char| !c.is_numeric())
-            .filter(|s| !s.is_empty())
-        {
+        println!("line {y}");
+        for (start_x, c) in line.char_indices().filter(|(start_x, c)| !c.is_numeric()) {
             // dbg!(num);
             let start_x = line.find(num).unwrap();
             let left_right = [(start_x.saturating_sub(1), y), (start_x + num.len(), y)];
@@ -41,8 +43,9 @@ fn solve(input: &str) -> usize {
 
             let mut surroundings = above.chain(left_right).chain(below);
 
-            if surroundings.any(|pos| symbols.contains_key(&pos)) {
-                println!("{num} at {start_x},{y} is a part");
+            if !surroundings.clone().any(|pos| symbols.contains_key(&pos)) {
+                dbg!(surroundings.collect_vec());
+                println!("{num} at {start_x},{y} is not a part");
                 sum += num.parse::<usize>().unwrap();
             }
         }
