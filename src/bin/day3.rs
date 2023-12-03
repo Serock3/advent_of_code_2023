@@ -58,15 +58,14 @@ fn solve(input: &str) -> usize {
 }
 
 fn solve_2(input: &str) -> usize {
-    let mut gears: HashMap<(usize, usize), Vec<usize>> = HashMap::new();
-    for (y, line) in input.lines().enumerate() {
-        for (x, _symbol) in line.match_indices('*') {
-            // println!("{:?}", (x, y, symbol));
-            if let Some(double) = gears.insert((x, y), vec![]) {
-                panic!("{double:?}")
-            }
-        }
-    }
+    let mut gears: HashMap<(usize, usize), Vec<usize>> = input
+        .lines()
+        .enumerate()
+        .flat_map(|(y, line)| {
+            line.match_indices('*')
+                .map(move |(x, _symbol)| ((x, y), vec![]))
+        })
+        .collect();
 
     for (y, line) in input.lines().enumerate() {
         println!("line {y}");
