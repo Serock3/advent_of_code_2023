@@ -3,6 +3,7 @@
 use core::num;
 
 use itertools::Itertools;
+use rayon::prelude::*;
 
 fn main() {
     let input = std::fs::read_to_string("input/day5.txt").unwrap();
@@ -29,25 +30,38 @@ struct MapCollection {
 }
 
 fn solve(input: &str) -> i64 {
-    let mut intervals = input
-        .lines()
-        .next()
-        .unwrap()
-        .split_once(": ")
-        .unwrap()
-        .1
-        .split_ascii_whitespace()
-        .map(|num_str| num_str.parse::<i64>().unwrap())
-        .chunks(2)
-        .into_iter()
-        .map(|mut nums| Interval {
-            start: nums.next().unwrap(),
-            len: nums.next().unwrap(),
-        })
-        .collect_vec();
-    dbg!(&intervals);
+    let intervals = parse_intervals(input);
 
-    let maps: Vec<MapCollection> = input
+    let map_category = parse_map_categories(input);
+
+    intervals
+        .into_iter()
+        .enumerate()
+        .map(|(i, interval)| {
+            println!("On interval nr {i}");
+            (interval.start..(interval.start + interval.len))
+                .into_par_iter()
+                .map(|mut seed| {
+                    for maps in &map_category {
+                        for map in &maps.maps {
+                            let offset = seed - map.source_start;
+                            if offset >= 0 && offset < map.len {
+                                seed = map.dest_start + offset;
+                                break;
+                            }
+                        }
+                    }
+                    seed
+                })
+                .min()
+                .unwrap()
+        })
+        .min()
+        .unwrap()
+}
+
+fn parse_map_categories(input: &str) -> Vec<MapCollection> {
+    let layer: Vec<MapCollection> = input
         .split("\n\n")
         .skip(1)
         .map(|segment| {
@@ -72,80 +86,27 @@ fn solve(input: &str) -> i64 {
             }
         })
         .collect_vec();
-
-    let maps = input.split("\n\n").skip(1);
-    for seed in &mut intervals {
-        for segment in maps.clone() {
-            let mut lines = segment.lines();
-            println!("{}", lines.next().unwrap());
-            for line in lines {
-                // let (dest_start, source_start, len): (i64, i64, i64) = line
-                //     .trim()
-                //     .split_ascii_whitespace()
-                //     .map(|num_str| num_str.parse::<i64>().unwrap())
-                //     .collect_tuple()
-                //     .unwrap();
-                // let offset = *seed - source_start;
-                // if offset >= 0 && offset < len {
-                //     *seed = dest_start + offset;
-                //     break;
-                // }
-            }
-        }
-    }
-    dbg!(&intervals);
-    // seeds.into_iter().min().unwrap()
-    todo!()
+    layer
 }
 
-fn rec_solve(interval: Interval, mut layers_of_maps: &[MapCollection]) -> i64 {
-    let Some((map_collection, rest)) = layers_of_maps.split_first() else {
-        // No more mapping to do. interval.start is always the lowest point
-        return interval.start;
-    };
-
-    println!("{}", map_collection.layer_name);
-
-    // TODO: If the interval is split, map the part that is overlapping and CONTINUE to see if the unmapped parts get mapped by some other map
-    for map in &map_collection.maps {
-        let offset_left = interval.start - map.source_start;
-        if offset_left < 0 {
-            // First point left of source
-            if interval.start + interval.len <= map.source_start {
-                // no overlap, all to the left
-                continue;
-            } else if interval.start + interval.len < map.source_start + map.len {
-                // Partial overlap, split to the left
-                let mapped_interval_left = Interval {
-                    start: interval.start,
-                    len: offset_left,
-                };
-                let mapped_interval_right = Interval {
-                    start: interval.start + offset_left,
-                    len: interval.len + offset_left,
-                };
-
-                return rec_solve(mapped_interval_left, layers_of_maps)
-                    .min(rec_solve(mapped_interval_right, layers_of_maps));
-            } else {
-                // interval encloses source interval
-                todo!()
-            }
-        } else if interval.start <= map.source_start + map.len {
-            // First point inside source interval
-            if interval.start + interval.len < map.source_start + map.len {
-                // source interval encloses interval
-                todo!()
-            } else {
-                //  partial overlap to the right
-                todo!()
-            }
-        } else {
-            // No overlap, all to the right
-            continue;
-        }
-    }
-    rec_solve(interval, rest)
+fn parse_intervals(input: &str) -> Vec<Interval> {
+    let mut intervals = input
+        .lines()
+        .next()
+        .unwrap()
+        .split_once(": ")
+        .unwrap()
+        .1
+        .split_ascii_whitespace()
+        .map(|num_str| num_str.parse::<i64>().unwrap())
+        .chunks(2)
+        .into_iter()
+        .map(|mut nums| Interval {
+            start: nums.next().unwrap(),
+            len: nums.next().unwrap(),
+        })
+        .collect_vec();
+    intervals
 }
 
 #[test]
