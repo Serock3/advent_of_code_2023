@@ -9,14 +9,27 @@ fn main() {
     println!("Answer: {}", solve(&input));
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Interval {
     pub start: i64,
     pub len: i64,
 }
 
+#[derive(Debug, Clone)]
+struct Map {
+    pub dest_start: i64,
+    pub source_start: i64,
+    pub len: i64,
+}
+
+#[derive(Debug, Clone)]
+struct MapCollection {
+    pub layer_name: String,
+    pub maps: Vec<Map>,
+}
+
 fn solve(input: &str) -> i64 {
-    let mut seeds = input
+    let mut intervals = input
         .lines()
         .next()
         .unwrap()
@@ -32,10 +45,36 @@ fn solve(input: &str) -> i64 {
             len: nums.next().unwrap(),
         })
         .collect_vec();
-    dbg!(&seeds);
+    dbg!(&intervals);
+
+    let maps: Vec<MapCollection> = input
+        .split("\n\n")
+        .skip(1)
+        .map(|segment| {
+            let mut lines = segment.lines();
+            MapCollection {
+                layer_name: lines.next().unwrap().to_string(),
+                maps: lines
+                    .map(|line| {
+                        let (dest_start, source_start, len) = line
+                            .trim()
+                            .split_ascii_whitespace()
+                            .map(|num_str| num_str.parse::<i64>().unwrap())
+                            .collect_tuple()
+                            .unwrap();
+                        Map {
+                            dest_start,
+                            source_start,
+                            len,
+                        }
+                    })
+                    .collect_vec(),
+            }
+        })
+        .collect_vec();
 
     let maps = input.split("\n\n").skip(1);
-    for seed in &mut seeds {
+    for seed in &mut intervals {
         for segment in maps.clone() {
             let mut lines = segment.lines();
             println!("{}", lines.next().unwrap());
@@ -54,95 +93,59 @@ fn solve(input: &str) -> i64 {
             }
         }
     }
-    dbg!(&seeds);
+    dbg!(&intervals);
     // seeds.into_iter().min().unwrap()
     todo!()
 }
 
-fn rec_solve<'a>(interval: Interval, mut maps: &'a str) -> Option<i64> {
-    let Some((segment, rest)) = maps.split_once("\n\n") else {
-        return None;
+fn rec_solve(interval: Interval, mut layers_of_maps: &[MapCollection]) -> i64 {
+    let Some((map_collection, rest)) = layers_of_maps.split_first() else {
+        // No more mapping to do. interval.start is always the lowest point
+        return interval.start;
     };
 
-    let mut lines = segment.lines();
-    println!("{}", lines.next().unwrap());
+    println!("{}", map_collection.layer_name);
 
-    lines
-        .filter_map(|line| {
-            let (dest_start, source_start, len): (i64, i64, i64) = line
-                .trim()
-                .split_ascii_whitespace()
-                .map(|num_str| num_str.parse::<i64>().unwrap())
-                .collect_tuple()
-                .unwrap();
+    // TODO: If the interval is split, map the part that is overlapping and CONTINUE to see if the unmapped parts get mapped by some other map
+    for map in &map_collection.maps {
+        let offset_left = interval.start - map.source_start;
+        if offset_left < 0 {
+            // First point left of source
+            if interval.start + interval.len <= map.source_start {
+                // no overlap, all to the left
+                continue;
+            } else if interval.start + interval.len < map.source_start + map.len {
+                // Partial overlap, split to the left
+                let mapped_interval_left = Interval {
+                    start: interval.start,
+                    len: offset_left,
+                };
+                let mapped_interval_right = Interval {
+                    start: interval.start + offset_left,
+                    len: interval.len + offset_left,
+                };
 
-            let offset_left = interval.start - source_start;
-            if offset_left < 0 {
-                // First point left of source
-                if interval.start + interval.len <= source_start {
-                    // no overlap, all to the left
-                    rec_solve(interval, rest)
-                } else if interval.start + interval.len < source_start + len {
-                    // Partial overlap, split to the left
-                    let mapped_interval_left = Interval {
-                        start: interval.start,
-                        len: offset_left,
-                    };
-                    let mapped_interval_right = Interval {
-                        start: interval.start + offset_left,
-                        len: interval.len + offset_left,
-                    };
-
-                    rec_solve(mapped_interval_left, maps)
-                        .min(rec_solve(mapped_interval_right, maps))
-                } else {
-                    // interval encloses source interval
-                    todo!()
-                }
-            } else if interval.start <= source_start + len {
-                // First point inside source interval
-                if interval.start + interval.len < source_start + len {
-                    // source interval encloses interval
-                    todo!()
-                } else {
-                    //  partial overlap to the right
-                    todo!()
-                }
+                return rec_solve(mapped_interval_left, layers_of_maps)
+                    .min(rec_solve(mapped_interval_right, layers_of_maps));
             } else {
-                // No overlap, all to the right
-                rec_solve(interval, rest)
+                // interval encloses source interval
+                todo!()
             }
-
-            // if interval.start + interval.len <= source_start || interval.start > source_start + len
-            // {
-            //     // no overlap
-            //     rec_solve(interval, rest)
-            // } else if interval.start >= source_start
-            //     && interval.start + interval.len <= source_start + len
-            // {
-            //     // source contains interval
-            //     let mapped_interval = Interval {
-            //         start: interval.start - source_start,
-            //         len: interval.len,
-            //     };
-            //     rec_solve(&mapped_interval, maps)
-            // } else if interval.start < source_start
-            //     && interval.start + interval.len > source_start + len
-            // {
-            //     // interval contains source
-            // } else {
-            //     None
-            // }
-            // interval.start < source_start
-            //     && interval.start + interval.len > source_start + len
-
-            // let offset = *interval.start - source_start;
-            // if offset >= 0 && offset < interval.len {
-            //     *seed = dest_start + offset;
-            //     break;
-            // }
-        })
-        .min()
+        } else if interval.start <= map.source_start + map.len {
+            // First point inside source interval
+            if interval.start + interval.len < map.source_start + map.len {
+                // source interval encloses interval
+                todo!()
+            } else {
+                //  partial overlap to the right
+                todo!()
+            }
+        } else {
+            // No overlap, all to the right
+            continue;
+        }
+    }
+    rec_solve(interval, rest)
 }
 
 #[test]
