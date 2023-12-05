@@ -42,39 +42,6 @@ fn solve(input: &str) -> i64 {
             }
         }
     }
-
-    // let maps: Vec<Vec<(i32, i32, i32)>> = input
-    //     .split("\n\n")
-    //     .skip(1)
-    //     .map(|segment| {
-    //         segment
-    //             .lines()
-    //             .skip(1)
-    //             .map(|line| {
-    //                 line.trim()
-    //                     .split_ascii_whitespace()
-    //                     .map(|num_str| num_str.parse::<i32>().unwrap())
-    //                     .collect_tuple()
-    //                     .unwrap()
-    //             })
-    //             .collect_vec()
-    //     })
-    //     .collect_vec();
-
-    // dbg!(&maps);
-
-    // for seed in &mut seeds {
-    //     for sub_map in &maps {
-    //         println!("{seed}");
-    //         for (dest_start, source_start, len) in sub_map {
-    //             let offset = *seed - *source_start;
-    //             if offset >= 0 && offset < *len {
-    //                 *seed = dest_start + offset;
-    //                 break;
-    //             }
-    //         }
-    //     }
-    // }
     dbg!(&seeds);
     seeds.into_iter().min().unwrap()
 }
