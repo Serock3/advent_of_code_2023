@@ -15,7 +15,7 @@ const VALID_CARDS: [char; 13] = [
     '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A',
 ];
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, Clone)]
 struct Hand {
     cards: [char; 5],
     hand_type: hand_type::HandType,
@@ -32,7 +32,7 @@ impl Ord for Hand {
                     let other_position = VALID_CARDS.iter().position(|c| other_card == *c).unwrap();
                     match self_position.cmp(&other_position) {
                         Ordering::Less => return Ordering::Less,
-                        Ordering::Greater => return Ordering::Less,
+                        Ordering::Greater => return Ordering::Greater,
                         Ordering::Equal => {
                             continue;
                         }
@@ -89,34 +89,22 @@ impl PartialOrd for Hand {
 }
 
 mod hand_type {
-    #[derive(Debug, Eq, PartialEq)]
+    #[derive(Debug, Eq, Ord, PartialOrd, PartialEq, Clone)]
     pub(crate) enum HandType {
-        FiveOfAKind,
-        FourOfAKind,
-        FullHouse,
-        ThreeOfAKind,
-        TwoPair,
-        OnePair,
         HighCard,
-    }
-
-    impl Ord for HandType {
-        fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-            todo!()
-        }
-    }
-
-    impl PartialOrd for HandType {
-        fn partial_cmp(&self, other: &HandType) -> Option<std::cmp::Ordering> {
-            Some(self.cmp(other))
-        }
+        OnePair,
+        TwoPair,
+        ThreeOfAKind,
+        FullHouse,
+        FourOfAKind,
+        FiveOfAKind,
     }
 }
 
 mod hand_bid {
     use super::Hand;
 
-    #[derive(Debug, Eq)]
+    #[derive(Debug, Eq, Clone)]
     pub(crate) struct HandBid {
         pub(crate) hand: Hand,
         pub bet: u32,
@@ -155,8 +143,12 @@ fn solve(input: &str) -> usize {
         })
         .collect_vec();
     hands.sort();
-    dbg!(hands);
-    todo!()
+    // dbg!(hands.clone());
+    hands
+        .iter()
+        .enumerate()
+        .map(|(i, hand)| (i + 1) * hand.bet as usize)
+        .sum()
 }
 
 #[test]
