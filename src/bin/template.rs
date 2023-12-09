@@ -2,8 +2,7 @@
 
 fn main() {
     let input = std::fs::read_to_string("input/day??.txt").unwrap();
-    println!("Answer 1: {}", solve(&input));
-    // println!("Answer 2: {}", solve_2(&input));
+    println!("Answer: {}", solve(&input));
 }
 
 fn solve(input: &str) -> usize {
