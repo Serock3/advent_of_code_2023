@@ -31,25 +31,25 @@ fn extrapolate(series: &[i32]) -> i32 {
     } else {
         extrapolate(&diffs)
     };
-    series.last().unwrap() + next_value
+    series.first().unwrap() - next_value
 }
 
 #[test]
 fn test_single() {
     let input = "0 3 6 9 12 15";
-    assert_eq!(solve_single(input), 18)
+    assert_eq!(solve_single(input), -3)
 }
 
 #[test]
 fn test_single2() {
     let input = "1 3 6 10 15 21";
-    assert_eq!(solve_single(input), 28)
+    assert_eq!(solve_single(input), 0)
 }
 
 #[test]
 fn test_single3() {
     let input = "10 13 16 21 30 45";
-    assert_eq!(solve_single(input), 68)
+    assert_eq!(solve_single(input), 5)
 }
 
 #[test]
@@ -57,5 +57,5 @@ fn test_example() {
     let input = "0 3 6 9 12 15
 1 3 6 10 15 21
 10 13 16 21 30 45";
-    assert_eq!(solve(input), 114)
+    assert_eq!(solve(input), 2)
 }
