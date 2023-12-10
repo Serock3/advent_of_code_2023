@@ -1,5 +1,7 @@
 #![allow(unused)]
 
+use std::ops::Div;
+
 use itertools::Itertools;
 use num::Integer;
 
@@ -8,17 +10,24 @@ fn main() {
     println!("Answer: {}", solve(&input));
 }
 
-struct Pipe {
-    r: usize,
-    c: usize,
-    shape: char,
+#[derive(Debug, Clone)]
+enum Direction {
+    North,
+    East,
+    South,
+    West,
 }
-
-// enum PipeShape{
-//     Vertical,
-//     Horizontal,
-//     NorthEast
-// }
+use Direction::*;
+impl From<&Direction> for (i32, i32) {
+    fn from(value: &Direction) -> Self {
+        match value {
+            Direction::North => (-1, 0),
+            Direction::East => (0, 1),
+            Direction::South => (1, 0),
+            Direction::West => (0, -1),
+        }
+    }
+}
 
 fn solve(input: &str) -> usize {
     let s_pos_raw = input.find('S').unwrap();
@@ -36,23 +45,83 @@ fn solve(input: &str) -> usize {
             }
         }
     }
-    let border = [
-        (-1, -1),
-        (-1, 0),
-        (-1, 1),
-        (0, -1),
-        (0, 1),
-        (1, -1),
-        (1, 0),
-        (1, 1),
-    ];
-
     assert_eq!(char_matrix[s_row][s_col], 'S');
-    todo!()
+
+    let start_dirs = [North, East, South, West];
+    let mut longest = 0;
+    for dir in start_dirs {
+        // dbg!(dir.clone());
+        let res = follow_pipe(
+            (s_row.try_into().unwrap(), s_col.try_into().unwrap()),
+            dir,
+            &char_matrix,
+        );
+        // dbg!(res.clone());
+        if let Some((len, exit_dir)) = res {
+            longest = len.max(longest);
+        }
+    }
+
+    longest.div(2)
 }
 
-fn follow_pipe(r: usize, c: usize, char_matrix: &[Vec<char>]) -> Option<(usize, usize, usize)> {
-    todo!()
+fn follow_pipe(
+    s_pos: (i32, i32),
+    mut dir: Direction,
+    char_matrix: &[Vec<char>],
+) -> Option<(usize, Direction)> {
+    let mut pos = add_pos(s_pos, &dir);
+
+    let mut steps = 1;
+
+    loop {
+        let pipe = get_pipe(pos, char_matrix)?;
+        if pipe == 'S' {
+            println!("Found loop");
+            return Some((steps, dir));
+        }
+        dir = match (&dir, pipe) {
+            // North
+            (North, '|') => North,
+            (North, 'F') => East,
+            (North, '7') => West,
+            // East
+            (East, '-') => East,
+            (East, '7') => South,
+            (East, 'J') => North,
+            // South
+            (South, '|') => South,
+            (South, 'J') => West,
+            (South, 'L') => East,
+            // West
+            (West, '-') => West,
+            (West, 'L') => North,
+            (West, 'F') => South,
+
+            (dir, sym) => {
+                // dbg!((dir, sym));
+                return None;
+            }
+        };
+        pos = add_pos(pos, &dir);
+        steps += 1;
+    }
+}
+
+fn add_pos(s_pos: (i32, i32), dir: &Direction) -> (i32, i32) {
+    let (r, c) = <(i32, i32)>::from(dir);
+    (s_pos.0 + r, s_pos.1 + c)
+}
+
+fn get_pipe(pos: (i32, i32), char_matrix: &[Vec<char>]) -> Option<char> {
+    let row = usize::try_from(pos.0).ok()?;
+    let col = usize::try_from(pos.1).ok()?;
+
+    char_matrix
+        .get(row)
+        .and_then(|chars| chars.get(col))
+        .cloned()
+        .filter(|char| *char != '.')
 }
 
 #[test]
