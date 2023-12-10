@@ -33,33 +33,32 @@ impl From<&Direction> for Pos {
 }
 
 fn solve(input: &str) -> u32 {
-    let s_pos_raw = input.find('S').unwrap();
     let char_matrix = input
         .lines()
         .map(|line| line.chars().collect_vec())
         .collect_vec();
-    let (mut s_row, mut s_col) = (0, 0);
-    'outer: for (r, row) in char_matrix.iter().enumerate() {
-        for (c, character) in row.iter().enumerate() {
-            if *character == 'S' {
-                s_row = r;
-                s_col = c;
-                break 'outer;
-            }
-        }
-    }
-    assert_eq!(char_matrix[s_row][s_col], 'S');
+    let s_pos = find_s(&char_matrix);
 
     let start_dirs = [North, East, South, West];
     let mut longest = 0;
     start_dirs
         .into_iter()
-        .find_map(|dir| {
-            follow_pipe(
-                (s_row.try_into().unwrap(), s_col.try_into().unwrap()),
-                dir,
-                &char_matrix,
-            )
+        .find_map(|dir| follow_pipe(s_pos, dir, &char_matrix))
+        .unwrap()
+}
+
+fn find_s(char_matrix: &[Vec<char>]) -> Pos {
+    char_matrix
+        .iter()
+        .enumerate()
+        .find_map(|(r, row)| {
+            row.iter().enumerate().find_map(|(c, character)| {
+                if *character == 'S' {
+                    Some((r.try_into().unwrap(), c.try_into().unwrap()))
+                } else {
+                    None
+                }
+            })
         })
         .unwrap()
 }
