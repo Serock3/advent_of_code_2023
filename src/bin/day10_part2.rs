@@ -10,7 +10,7 @@ fn main() {
     println!("Answer: {}", solve(&input));
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 enum Direction {
     North,
     East,
@@ -49,7 +49,7 @@ fn solve(input: &str) -> usize {
 
     let start_dirs = [North, East, South, West];
     let mut longest = 0;
-    let (_len, dir, pipe) = start_dirs
+    let (_len, dir, area) = start_dirs
         .into_iter()
         .filter_map(|dir| {
             follow_pipe(
@@ -61,41 +61,56 @@ fn solve(input: &str) -> usize {
         .max_by(|(len_x, _, _), (len_y, _, _)| len_x.cmp(len_y))
         .unwrap();
 
-    pipe_area(&pipe, dir)
-}
-
-fn pipe_area(pipe: &[(i32, i32)], end_dir: Direction) -> usize {
-    let last = pipe.last().unwrap();
-    match end_dir {
-        North => todo!(),
-        East => todo!(),
-        South => todo!(),
-        West => todo!(),
-    }
-    todo!()
+    area.try_into().unwrap()
 }
 
 fn follow_pipe(
     mut pos: (i32, i32),
     mut dir: Direction,
     char_matrix: &[Vec<char>],
-) -> Option<(usize, Direction, Vec<(i32, i32)>)> {
+) -> Option<(usize, Direction, u32)> {
+    let start_dir = dir.clone();
     let mut steps = 0;
 
-    let mut pipe_positions = vec![];
-
     let mut twice_area = 0;
+    let mut num_straight = 0;
+    let mut num_bends = 0;
     loop {
-        pipe_positions.push(pos);
-
         // Take step
         steps += 1;
 
         twice_area += twise_area_change(pos, &dir);
 
         pos = add_pos(pos, &dir);
-        dir = match (dir, get_pipe(pos, char_matrix)?) {
-            (dir, 'S') => return Some((steps, dir, pipe_positions)),
+        let pipe = get_pipe(pos, char_matrix)?;
+        match pipe {
+            '|' => num_straight += 1,
+            '-' => num_straight += 1,
+            'L' => num_bends += 1,
+            'J' => num_bends += 1,
+            '7' => num_bends += 1,
+            'F' => num_bends += 1,
+            'S' => {
+                if dir == start_dir {
+                    num_straight += 1
+                } else {
+                    num_bends += 1
+                }
+            }
+            _ => {}
+        }
+        dir = match (dir, pipe) {
+            (dir, 'S') => {
+                return Some((
+                    steps,
+                    dir,
+                    get_gap_area(
+                        (twice_area.abs() / 2).try_into().unwrap(),
+                        num_straight,
+                        num_bends,
+                    ),
+                ))
+            }
             // North
             (North, '|') => North,
             (North, 'F') => East,
@@ -121,6 +136,11 @@ fn follow_pipe(
     }
 }
 
+fn get_gap_area(enclosed_area: u32, num_straight: u32, num_bends: u32) -> u32 {
+    let num_extra_bends = num_bends - 4;
+    enclosed_area - (num_straight + num_extra_bends) / 2 - 1
+}
+
 fn twise_area_change(pos: (i32, i32), dir: &Direction) -> i32 {
     let (dr, dc) = <(i32, i32)>::from(dir);
     let (dx, dy) = (dc, -dr);
@@ -142,6 +162,16 @@ fn get_pipe(pos: (i32, i32), char_matrix: &[Vec<char>]) -> Option<char> {
         .and_then(|chars| chars.get(col))
         .cloned()
         .filter(|char| *char != '.')
+}
+
+#[test]
+fn test_gap_area() {
+    assert_eq!(get_gap_area(10, 6, 10), 3)
+}
+
+#[test]
+fn test_gap_area2() {
+    assert_eq!(get_gap_area(9, 8, 8), 2)
 }
 
 #[test]
