@@ -32,7 +32,7 @@ impl From<&Direction> for Pos {
     }
 }
 
-fn solve(input: &str) -> usize {
+fn solve(input: &str) -> u32 {
     let s_pos_raw = input.find('S').unwrap();
     let char_matrix = input
         .lines()
@@ -52,7 +52,7 @@ fn solve(input: &str) -> usize {
 
     let start_dirs = [North, East, South, West];
     let mut longest = 0;
-    let area = start_dirs
+    start_dirs
         .into_iter()
         .find_map(|dir| {
             follow_pipe(
@@ -61,9 +61,7 @@ fn solve(input: &str) -> usize {
                 &char_matrix,
             )
         })
-        .unwrap();
-
-    area.try_into().unwrap()
+        .unwrap()
 }
 
 fn follow_pipe(mut pos: Pos, mut dir: Direction, char_matrix: &[Vec<char>]) -> Option<u32> {
@@ -71,10 +69,8 @@ fn follow_pipe(mut pos: Pos, mut dir: Direction, char_matrix: &[Vec<char>]) -> O
 
     // Twice the area enclosed by the looping pipes
     let mut twice_signed_enclosed_erea = 0;
-    // To accound for the thickness of the pipes themselves,
-    // we must count the number of straight and bent pieces.
-    let mut num_straight_pipes = 0;
-    let mut num_bent_pipes = 0;
+    // To account for the area of the pipes, we need the number of them
+    let mut num_pipes = 0;
 
     loop {
         twice_signed_enclosed_erea += twise_area_change(pos, &dir);
@@ -82,21 +78,7 @@ fn follow_pipe(mut pos: Pos, mut dir: Direction, char_matrix: &[Vec<char>]) -> O
         pos = step(pos, &dir);
         let pipe = get_pipe(pos, char_matrix)?;
 
-        match pipe {
-            '|' => num_straight_pipes += 1,
-            '-' => num_straight_pipes += 1,
-            // We have to compare the end direction to the start direction
-            // to know if the 'S' represents a straight or curved pipe
-            'S' => {
-                if dir == start_dir {
-                    num_straight_pipes += 1
-                } else {
-                    num_bent_pipes += 1
-                }
-            }
-            // Remaining pipe types are curved
-            _ => num_bent_pipes += 1,
-        }
+        num_pipes += 1;
 
         dir = match (dir, pipe) {
             (North, '|') => North,
@@ -111,13 +93,7 @@ fn follow_pipe(mut pos: Pos, mut dir: Direction, char_matrix: &[Vec<char>]) -> O
             (West, '-') => West,
             (West, 'L') => North,
             (West, 'F') => South,
-            (dir, 'S') => {
-                return Some(get_gap_area(
-                    twice_signed_enclosed_erea / 2,
-                    num_straight_pipes,
-                    num_bent_pipes,
-                ))
-            }
+            (dir, 'S') => return Some(get_gap_area(twice_signed_enclosed_erea / 2, num_pipes)),
             // Hit a stop
             _ => return None,
         };
@@ -126,11 +102,22 @@ fn follow_pipe(mut pos: Pos, mut dir: Direction, char_matrix: &[Vec<char>]) -> O
 
 /// Get the total enclosed area by the pipes, encounting for their own thickness.
 ///
-/// Each pipe piece has an area of 1. For a straight piece, half of that area is always
-/// inside the curve. For a bent piece, it depends on whether it is concave of convex.
-fn get_gap_area(signed_enclosed_area: i32, num_straight: u32, num_bends: u32) -> u32 {
+/// Each pipe piece has an area of 1.
+///
+/// For a straight piece, half of that area is always inside the curve.
+///
+/// For a bent piece, it depends on whether it is concave of convex.
+/// A concave piece (curving inwards) has 1/4 inside the curve, convex pieces have 3/4.
+///
+/// This condition must always hold.
+/// #Concave pipes = #Convex pips + 4
+///
+/// => Area = enclosed area - #straight /2 - #concave/4 - #convex *3/4
+///         = enclosed area - (#straight + #bend)/2 + 1
+///         = enclosed area - #pieces/2 + 1
+fn get_gap_area(signed_enclosed_area: i32, num_pipes: u32) -> u32 {
     let unsigned_area: u32 = signed_enclosed_area.abs().try_into().unwrap();
-    unsigned_area - (num_straight + (num_bends - 4)) / 2 - 1
+    unsigned_area - num_pipes / 2 + 1
 }
 
 /// Calculate the difference in enclosed area made by line element according
@@ -169,12 +156,12 @@ mod tests {
     // Hand made test for by gap area fn
     #[test]
     pub(crate) fn test_gap_area() {
-        assert_eq!(get_gap_area(10, 6, 10), 3)
+        assert_eq!(get_gap_area(10, 16), 3)
     }
 
     #[test]
     pub(crate) fn test_gap_area2() {
-        assert_eq!(get_gap_area(9, 8, 8), 2)
+        assert_eq!(get_gap_area(9, 16), 2)
     }
 
     #[test]
