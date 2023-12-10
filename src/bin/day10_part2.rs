@@ -102,19 +102,8 @@ fn follow_pipe(mut pos: Pos, mut dir: Direction, char_matrix: &[Vec<char>]) -> O
 
 /// Get the total enclosed area by the pipes, encounting for their own thickness.
 ///
-/// Each pipe piece has an area of 1.
-///
-/// For a straight piece, half of that area is always inside the curve.
-///
-/// For a bent piece, it depends on whether it is concave of convex.
-/// A concave piece (curving inwards) has 1/4 inside the curve, convex pieces have 3/4.
-///
-/// This condition must always hold.
-/// #Concave pipes = #Convex pips + 4
-///
-/// => Area = enclosed area - #straight /2 - #concave/4 - #convex *3/4
-///         = enclosed area - (#straight + #bend)/2 + 1
-///         = enclosed area - #pieces/2 + 1
+/// Almost half the pipes own area is inside the curve. A little less because the
+/// inside perimiter of the pipes is smaller than the outside perimiter.
 fn get_gap_area(signed_enclosed_area: i32, num_pipes: u32) -> u32 {
     let unsigned_area: u32 = signed_enclosed_area.abs().try_into().unwrap();
     unsigned_area - num_pipes / 2 + 1
