@@ -134,7 +134,6 @@ fn get_pipe(pos: Pos, char_matrix: &[Vec<char>]) -> Option<char> {
         .get(row)
         .and_then(|chars| chars.get(col))
         .cloned()
-        .filter(|char| *char != '.')
 }
 
 #[cfg(test)]

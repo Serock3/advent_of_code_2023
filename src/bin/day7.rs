@@ -42,7 +42,7 @@ mod hand_bid {
 
     impl PartialOrd for HandBid {
         fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-            self.hand.partial_cmp(&other.hand)
+            Some(self.cmp(other))
         }
     }
 
