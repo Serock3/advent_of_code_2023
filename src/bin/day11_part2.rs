@@ -5,10 +5,10 @@ type Pos = (usize, usize);
 
 fn main() {
     let input = std::fs::read_to_string("input/day11.txt").unwrap();
-    println!("Answer: {}", solve(input));
+    println!("Answer: {}", solve(input, 1000000));
 }
 
-fn solve(mut input: String) -> usize {
+fn solve(mut input: String, expansion_rate: usize) -> usize {
     let mut lines = input.lines().collect_vec();
     let matrix = lines
         .iter()
@@ -33,7 +33,7 @@ fn solve(mut input: String) -> usize {
         .combinations(2)
         .map(|x| {
             assert_eq!(x.len(), 2);
-            let dist = distance(x[0].1, x[1].1, &empty_rows, &empty_columns);
+            let dist = distance(x[0].1, x[1].1, &empty_rows, &empty_columns, expansion_rate);
             // println!("Dist from {} to {} is {dist}", x[0].0 + 1, x[1].0 + 1);
             dist
         })
@@ -73,7 +73,13 @@ fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
         .collect()
 }
 
-fn distance(first: &Pos, second: &Pos, empty_rows: &[usize], empty_cols: &[usize]) -> usize {
+fn distance(
+    first: &Pos,
+    second: &Pos,
+    empty_rows: &[usize],
+    empty_cols: &[usize],
+    expansion_rate: usize,
+) -> usize {
     let lower_row = second.0.min(first.0);
     let higher_row = second.0.max(first.0);
     let lower_col = second.1.min(first.1);
@@ -89,22 +95,22 @@ fn distance(first: &Pos, second: &Pos, empty_rows: &[usize], empty_cols: &[usize
         .filter(|c| (lower_col..higher_col).contains(c))
         .count();
 
-    empty_rows_in_path + dr + empty_cols_in_path + dc
+    empty_rows_in_path * (expansion_rate - 1) + dr + empty_cols_in_path * (expansion_rate - 1) + dc
 }
 
 #[test]
 fn test_dist() {
-    assert_eq!(distance(&(5, 1), &(9, 4), &[], &[]), 7)
+    assert_eq!(distance(&(5, 1), &(9, 4), &[], &[], 1), 7)
 }
 
 #[test]
 fn test_dist2() {
-    assert_eq!(distance(&(5, 1), &(9, 4), &[3, 7], &[2, 5, 8]), 9)
+    assert_eq!(distance(&(5, 1), &(9, 4), &[3, 7], &[2, 5, 8], 1), 9)
 }
 
 #[test]
 fn test_dist3() {
-    assert_eq!(distance(&(2, 0), &(6, 9), &[3, 7], &[2, 5, 8]), 17)
+    assert_eq!(distance(&(2, 0), &(6, 9), &[3, 7], &[2, 5, 8], 1), 17)
 }
 
 #[test]
@@ -119,5 +125,35 @@ fn test_example() {
 ..........
 .......#..
 #...#.....";
-    assert_eq!(solve(input.into()), 374)
+    assert_eq!(solve(input.into(), 1), 374)
+}
+
+#[test]
+fn test_example10() {
+    let input = "...#......
+.......#..
+#.........
+..........
+......#...
+.#........
+.........#
+..........
+.......#..
+#...#.....";
+    assert_eq!(solve(input.into(), 10), 1030)
+}
+
+#[test]
+fn test_example100() {
+    let input = "...#......
+.......#..
+#.........
+..........
+......#...
+.#........
+.........#
+..........
+.......#..
+#...#.....";
+    assert_eq!(solve(input.into(), 100), 8410)
 }
