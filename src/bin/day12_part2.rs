@@ -3,7 +3,7 @@ use std::{collections::HashMap, fmt::format, sync::Mutex};
 
 use itertools::Itertools;
 use rayon::prelude::*;
-
+//3920527327848 too high
 fn main() {
     let input = std::fs::read_to_string("input/day12.txt").unwrap();
     println!("Answer: {}", solve(&input));
@@ -50,10 +50,10 @@ fn solve_times_five(input: &str) -> usize {
     solve_recursive(&sizes, &condition.chars().collect_vec(), &mut cache)
 }
 
-fn solve_recursive(
-    sizes: &[usize],
-    conditions: &[char],
-    cache: &mut HashMap<(&[usize], &[char]), usize>,
+fn solve_recursive<'a>(
+    sizes: &'a [usize],
+    conditions: &'a [char],
+    cache: &mut HashMap<(&'a [usize], &'a [char]), usize>,
 ) -> usize {
     if sizes.is_empty() {
         return !conditions.contains(&'#') as usize;
