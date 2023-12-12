@@ -23,83 +23,151 @@ fn solve_single(input: &str) -> usize {
     //     // .map(|contiguous_working| contiguous_working.len())
     //     .collect_vec();
 
-    solve_recursive(&sizes, &condition.chars().collect_vec())
+    let Some(ans) = solve_recursive(&sizes, &condition.chars().collect_vec()) else {
+        panic!("{input}")
+    };
+    ans
+    // todo!()
 }
 
-fn solve_recursive(remaining_sizes: &[usize], remaning_conditions: &[char]) -> usize {
-    let Some((current_size, remaining_sizes)) = remaining_sizes.split_first() else {
-        return 1;
-    };
-    let mut sum_possible = 0;
-    for i in 0..(remaning_conditions.len() - current_size) {
-        match remaning_conditions.get(i + *current_size) {
-            Some('#') => continue, // Not valid if next char is #
-            None => return 0,
-            _ => {}
-        }
-        let window = &remaning_conditions[i..i + *current_size];
-        if window.contains(&'.') {
-            continue;
-        }
-        if let Some(next_win) = remaning_conditions.get(i + *current_size + 1..) {
-            sum_possible += solve_recursive(remaining_sizes, next_win)
+fn solve_recursive(sizes: &[usize], conditions: &[char]) -> Option<usize> {
+    if sizes.is_empty() {
+        if conditions.contains(&'#') {
+            return None;
         } else {
-            return sum_possible + 1;
+            return Some(1);
         }
+    } else if !(conditions.contains(&'#') || conditions.contains(&'?')) {
+        return None;
+    }
+    let (current_size, remaining_sizes) = sizes.split_first().unwrap();
+    if conditions.len() < *current_size {
+        return None;
+    }
+    match conditions.first() {
+        Some('.') => return solve_recursive(sizes, &conditions[1..]), // Not valid if next char is #
+        Some('#') => {
+            if conditions[..*current_size].contains(&'.') {
+                return None;
+            }
+            match conditions.get(*current_size) {
+                Some('#') => return None, // Not valid if next char is #
+                None => return Some(1),
+                _ => return solve_recursive(remaining_sizes, &conditions[1 + *current_size..]),
+            }
+        }
+        Some('?') => {
+            let mut sum_possible = 0;
+
+            match conditions.get(*current_size) {
+                Some('#') => {
+                    // Not a valid spot, move right
+                    return solve_recursive(sizes, &conditions[1..]);
+                }
+                Some('.') => {
+                    // Valid spot, but cannot move further right
+                    return solve_recursive(remaining_sizes, &conditions[1 + *current_size..]);
+                }
+                Some('?') => {
+                    if conditions[..*current_size].contains(&'.') {
+                        // Not a valid spot, move right. NOTE: Move multi steps right
+                        return solve_recursive(sizes, &conditions[1..]);
+                    } else {
+                        // Valid spot, count number of valid configs for remaining sizes, then step right
+                        // for i in 1 + *current_size..conditions.len(){
+
+                        // }
+                        let configs_for_this_pos =
+                            solve_recursive(remaining_sizes, &conditions[1 + *current_size..])
+                                .unwrap_or(0);
+                        let configs_for_next_pos =
+                            solve_recursive(sizes, &conditions[1..]).unwrap_or(0);
+                        return Some(configs_for_this_pos + configs_for_next_pos);
+                    }
+                }
+                None => {
+                    // Last possible pos,
+                    if conditions[..*current_size].contains(&'.') {
+                        return None;
+                    } else {
+                        return Some(1);
+                    }
+                }
+                _ => {
+                    panic!()
+                }
+            }
+        }
+
+        None => return None,
+        _ => {}
     }
 
-    sum_possible
+    todo!()
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
+    pub(crate) fn test_simple() {
+        let input = "###.### 3,3";
+        assert_eq!(solve_single(input), 1)
+    }
+
+    #[test]
+    pub(crate) fn test_simple2() {
+        let input = "###.?## 3,3";
+        assert_eq!(solve_single(input), 1)
+    }
+
+    #[test]
     pub(crate) fn test_example_single() {
         let input = "???.### 1,1,3";
-        assert_eq!(solve(input), 1)
+        assert_eq!(solve_single(input), 1)
     }
 
     #[test]
     pub(crate) fn test_example_single2() {
         let input = ".??..??...?##. 1,1,3";
-        assert_eq!(solve(input), 4)
+        assert_eq!(solve_single(input), 4)
     }
 
     #[test]
     pub(crate) fn test_example_single3() {
         let input = "?#?#?#?#?#?#?#? 1,3,1,6";
-        assert_eq!(solve(input), 1)
+        assert_eq!(solve_single(input), 1)
     }
 
     #[test]
     pub(crate) fn test_example_single4() {
         let input = "????.#...#... 4,1,1";
-        assert_eq!(solve(input), 1)
+        assert_eq!(solve_single(input), 1)
     }
 
     #[test]
     pub(crate) fn test_example_single5() {
         let input = "????.######..#####. 1,6,5";
-        assert_eq!(solve(input), 4)
+        assert_eq!(solve_single(input), 4)
     }
     #[test]
     pub(crate) fn test_example_single6() {
         let input = "?###???????? 3,2,1";
-        assert_eq!(solve(input), 10)
+        assert_eq!(solve_single(input), 10)
     }
 
     #[test]
     pub(crate) fn test_example_single_custom1() {
         let input = "??#.?#?#??? 1,3,1";
-        assert_eq!(solve(input), 2)
+        assert_eq!(solve_single(input), 2)
     }
 
-    #[test]
-    pub(crate) fn test_example_single_custom2() {
-        let input = "?????.??.???. 1,1,1";
-        assert_eq!(solve(input), 2)
-    }
+    // #[test]
+    // pub(crate) fn test_example_single_custom1() {
+    //     let input = "??#.?#?#??? 1,3,1";
+    //     assert_eq!(solve_single(input), 2)
+    // }
 
     #[test]
     pub(crate) fn test_example() {
