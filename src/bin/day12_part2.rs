@@ -95,17 +95,15 @@ fn solve_recursive<'a>(
                         as usize
                 }
                 _ => {
-                    if let Some(i) = conditions[..*current_size].iter().position(|c| c == &'.') {
-                        // Not a valid spot, step until '.' is outside the interval
-                        solve_recursive(sizes, &conditions[i + 1..], cache)
+                    if conditions[..*current_size].contains(&'.') {
+                        // Not a valid spot, move right. NOTE: Move multi steps right
+                        solve_recursive(sizes, &conditions[1..], cache)
                     } else {
                         let configs_for_this_pos = solve_recursive(
                             remaining_sizes,
                             &conditions[1 + *current_size..],
                             cache,
                         );
-
-                        // Step forward
                         let configs_for_rest = solve_recursive(sizes, &conditions[1..], cache);
 
                         configs_for_this_pos + configs_for_rest
