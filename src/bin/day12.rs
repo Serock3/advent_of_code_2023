@@ -91,89 +91,27 @@ fn solve_recursive<'a>(
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+
     use super::*;
 
-    #[test]
-    pub(crate) fn test_simple() {
-        let input = "###.### 3,3";
-        assert_eq!(solve_single(input), 1)
-    }
-
-    #[test]
-    pub(crate) fn test_simple2() {
-        let input = "###.?## 3,3";
-        assert_eq!(solve_single(input), 1)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single() {
-        let input = "???.### 1,1,3";
-        assert_eq!(solve_single(input), 1)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single2() {
-        let input = ".??..??...?##. 1,1,3";
-        assert_eq!(solve_single(input), 4)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single3() {
-        let input = "?#?#?#?#?#?#?#? 1,3,1,6";
-        assert_eq!(solve_single(input), 1)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single4() {
-        let input = "????.#...#... 4,1,1";
-        assert_eq!(solve_single(input), 1)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single5() {
-        let input = "????.######..#####. 1,6,5";
-        assert_eq!(solve_single(input), 4)
-    }
-    #[test]
-    pub(crate) fn test_example_single6() {
-        let input = "?###???????? 3,2,1";
-        assert_eq!(solve_single(input), 10)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single_custom1() {
-        let input = "??#.?#?#??? 1,3,1";
-        assert_eq!(solve_single(input), 2)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single_custom2() {
-        let input = "?.#?#??#?# 1,6";
-        assert_eq!(solve_single(input), 1)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single_custom3() {
-        let input = ".??#???.??? 3,1,1";
-        assert_eq!(solve_single(input), 12)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single_custom4() {
-        let input = "??##?#?????.. 5,1";
-        assert_eq!(solve_single(input), 7)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single_custom5() {
-        let input = "?#?#?????. 1,1,2";
-        assert_eq!(solve_single(input), 3)
-    }
-
-    #[test]
-    pub(crate) fn test_example_single_custom6() {
-        let input = "??.??#.??#?? 1,3,2,1";
-        assert_eq!(solve_single(input), 2)
+    #[rstest]
+    #[case("###.### 3,3", 1)]
+    #[case("###.?## 3,3", 1)]
+    #[case("???.### 1,1,3", 1)]
+    #[case(".??..??...?##. 1,1,3", 4)]
+    #[case("?#?#?#?#?#?#?#? 1,3,1,6", 1)]
+    #[case("????.#...#... 4,1,1", 1)]
+    #[case("????.######..#####. 1,6,5", 4)]
+    #[case("?###???????? 3,2,1", 10)]
+    #[case("??#.?#?#??? 1,3,1", 2)]
+    #[case("?.#?#??#?# 1,6", 1)]
+    #[case(".??#???.??? 3,1,1", 12)]
+    #[case("??##?#?????.. 5,1", 7)]
+    #[case("?#?#?????. 1,1,2", 3)]
+    #[case("??.??#.??#?? 1,3,2,1", 2)]
+    pub(crate) fn test_single(#[case] input: &str, #[case] solution: usize) {
+        assert_eq!(solve_single(input), solution)
     }
 
     #[test]
