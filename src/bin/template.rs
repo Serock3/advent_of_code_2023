@@ -1,4 +1,5 @@
 #![allow(unused)]
+use itertools::Itertools;
 
 fn main() {
     let input = std::fs::read_to_string("input/day??.txt").unwrap();
