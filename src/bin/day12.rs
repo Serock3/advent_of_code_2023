@@ -35,6 +35,7 @@ fn solve_recursive(sizes: &[usize], conditions: &[char]) -> Option<usize> {
         if conditions.contains(&'#') {
             return None;
         } else {
+            // println!("{}", ".".repeat(conditions.len()));
             return Some(1);
         }
     } else if !(conditions.contains(&'#') || conditions.contains(&'?')) {
@@ -45,15 +46,31 @@ fn solve_recursive(sizes: &[usize], conditions: &[char]) -> Option<usize> {
         return None;
     }
     match conditions.first() {
-        Some('.') => return solve_recursive(sizes, &conditions[1..]), // Not valid if next char is #
+        Some('.') => {
+            // print!(".");
+            return solve_recursive(sizes, &conditions[1..]);
+        }
         Some('#') => {
             if conditions[..*current_size].contains(&'.') {
                 return None;
             }
             match conditions.get(*current_size) {
                 Some('#') => return None, // Not valid if next char is #
-                None => return Some(1),
-                _ => return solve_recursive(remaining_sizes, &conditions[1 + *current_size..]),
+                None => {
+                    // Last possible pos,
+                    if conditions[..*current_size].contains(&'.') {
+                        return None;
+                    } else if remaining_sizes.is_empty() {
+                        // println!("{}", "#".repeat(*current_size));
+                        return Some(1);
+                    } else {
+                        return None;
+                    }
+                }
+                _ => {
+                    // print!("{}.", "#".repeat(*current_size));
+                    return solve_recursive(remaining_sizes, &conditions[1 + *current_size..]);
+                }
             }
         }
         Some('?') => {
@@ -62,35 +79,40 @@ fn solve_recursive(sizes: &[usize], conditions: &[char]) -> Option<usize> {
             match conditions.get(*current_size) {
                 Some('#') => {
                     // Not a valid spot, move right
+                    // print!(".");
                     return solve_recursive(sizes, &conditions[1..]);
                 }
-                Some('.') => {
-                    // Valid spot, but cannot move further right
-                    return solve_recursive(remaining_sizes, &conditions[1 + *current_size..]);
-                }
-                Some('?') => {
+                // Some('.') => {
+                //     // Valid spot, but cannot move further right
+                //     return solve_recursive(remaining_sizes, &conditions[1 + *current_size..]);
+                // }
+                Some(_) => {
                     if conditions[..*current_size].contains(&'.') {
                         // Not a valid spot, move right. NOTE: Move multi steps right
                         return solve_recursive(sizes, &conditions[1..]);
                     } else {
-                        // Valid spot, count number of valid configs for remaining sizes, then step right
-                        // for i in 1 + *current_size..conditions.len(){
-
-                        // }
+                        // print!("{}.", "#".repeat(*current_size));
                         let configs_for_this_pos =
                             solve_recursive(remaining_sizes, &conditions[1 + *current_size..])
                                 .unwrap_or(0);
-                        let configs_for_next_pos =
+                        // dbg!(configs_for_this_pos);
+                        // Step forward
+                        // print!("-");
+                        let configs_for_rest =
                             solve_recursive(sizes, &conditions[1..]).unwrap_or(0);
-                        return Some(configs_for_this_pos + configs_for_next_pos);
+                        // dbg!(configs_for_rest);
+                        return Some(configs_for_this_pos + configs_for_rest);
                     }
                 }
                 None => {
                     // Last possible pos,
                     if conditions[..*current_size].contains(&'.') {
                         return None;
-                    } else {
+                    } else if remaining_sizes.is_empty() {
+                        // println!("{}", "#".repeat(*current_size));
                         return Some(1);
+                    } else {
+                        return None;
                     }
                 }
                 _ => {
@@ -163,11 +185,35 @@ mod tests {
         assert_eq!(solve_single(input), 2)
     }
 
-    // #[test]
-    // pub(crate) fn test_example_single_custom1() {
-    //     let input = "??#.?#?#??? 1,3,1";
-    //     assert_eq!(solve_single(input), 2)
-    // }
+    #[test]
+    pub(crate) fn test_example_single_custom2() {
+        let input = "?.#?#??#?# 1,6";
+        assert_eq!(solve_single(input), 1)
+    }
+
+    #[test]
+    pub(crate) fn test_example_single_custom3() {
+        let input = ".??#???.??? 3,1,1";
+        assert_eq!(solve_single(input), 12)
+    }
+
+    #[test]
+    pub(crate) fn test_example_single_custom4() {
+        let input = "??##?#?????.. 5,1";
+        assert_eq!(solve_single(input), 7)
+    }
+
+    #[test]
+    pub(crate) fn test_example_single_custom5() {
+        let input = "?#?#?????. 1,1,2";
+        assert_eq!(solve_single(input), 3)
+    }
+
+    #[test]
+    pub(crate) fn test_example_single_custom6() {
+        let input = "??.??#.??#?? 1,3,2,1";
+        assert_eq!(solve_single(input), 2)
+    }
 
     #[test]
     pub(crate) fn test_example() {
