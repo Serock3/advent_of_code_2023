@@ -98,17 +98,17 @@ fn distance(
 
 #[test]
 fn test_dist() {
-    assert_eq!(distance(&(5, 1), &(9, 4), &[], &[], 1), 7)
+    assert_eq!(distance(&(5, 1), &(9, 4), &[], &[], 2), 7)
 }
 
 #[test]
 fn test_dist2() {
-    assert_eq!(distance(&(5, 1), &(9, 4), &[3, 7], &[2, 5, 8], 1), 9)
+    assert_eq!(distance(&(5, 1), &(9, 4), &[3, 7], &[2, 5, 8], 2), 9)
 }
 
 #[test]
 fn test_dist3() {
-    assert_eq!(distance(&(2, 0), &(6, 9), &[3, 7], &[2, 5, 8], 1), 17)
+    assert_eq!(distance(&(2, 0), &(6, 9), &[3, 7], &[2, 5, 8], 2), 17)
 }
 
 #[test]
@@ -123,7 +123,7 @@ fn test_example() {
 ..........
 .......#..
 #...#.....";
-    assert_eq!(solve(input.into(), 1), 374)
+    assert_eq!(solve(input.into(), 2), 374)
 }
 
 #[test]
