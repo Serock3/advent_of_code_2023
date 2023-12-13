@@ -116,7 +116,7 @@ mod hand_bid {
             card_counts.sort();
             card_counts.reverse();
 
-            let highest = *card_counts.get(0).unwrap_or(&&0) + joker_count;
+            let highest = *card_counts.first().unwrap_or(&&0) + joker_count;
             let second_heighest = **card_counts.get(1).unwrap_or(&&0);
             match (highest, second_heighest) {
                 (5, 0) => HandType::FiveOfAKind,
