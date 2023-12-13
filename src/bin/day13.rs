@@ -1,11 +1,11 @@
 #![allow(unused)]
 use std::{iter::Rev, slice::Iter};
 
+use advent_of_code::get_input;
 use itertools::Itertools;
 
 fn main() {
-    let input = std::fs::read_to_string("input/day13.txt").unwrap();
-    println!("Answer: {}", solve(&input));
+    println!("Answer: {}", solve(&get_input()));
 }
 
 fn solve(input: &str) -> usize {

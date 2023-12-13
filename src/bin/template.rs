@@ -1,9 +1,9 @@
 #![allow(unused)]
+use advent_of_code::get_input;
 use itertools::Itertools;
 
 fn main() {
-    let input = std::fs::read_to_string("input/day??.txt").unwrap();
-    println!("Answer: {}", solve(&input));
+    println!("Answer: {}", solve(&get_input()));
 }
 
 fn solve(input: &str) -> usize {
