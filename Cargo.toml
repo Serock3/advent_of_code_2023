@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 itertools = "0.12"
+ndarray = { version = "0.15.6", features = ["rayon"] }
 num = {version = "0.4.1", default-features = true}
 petgraph = "0.6.2"
 rayon = "1.8.0"
