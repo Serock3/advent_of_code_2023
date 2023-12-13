@@ -33,9 +33,7 @@ fn solve(mut input: String, expansion_rate: usize) -> usize {
         .combinations(2)
         .map(|x| {
             assert_eq!(x.len(), 2);
-            let dist = distance(x[0].1, x[1].1, &empty_rows, &empty_columns, expansion_rate);
-            // println!("Dist from {} to {} is {dist}", x[0].0 + 1, x[1].0 + 1);
-            dist
+            distance(x[0].1, x[1].1, &empty_rows, &empty_columns, expansion_rate)
         })
         .sum()
 }
