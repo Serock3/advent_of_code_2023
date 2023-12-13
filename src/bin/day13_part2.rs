@@ -24,20 +24,18 @@ fn parse_matrices(input: &str) -> (Vec<Vec<char>>, Vec<Vec<char>>) {
 fn solve_pattern(input: &str) -> usize {
     let (rows, cols) = parse_matrices(input);
 
-    let mut row_iter = rows.iter().enumerate().fuse();
-    let mut col_iter = cols.iter().enumerate().fuse();
     for i in 1.. {
-        if i < rows.len() && solve_reflection(i, &rows) {
+        if i < rows.len() && reflection_at(i, &rows) {
             return i * 100;
         }
-        if i < cols.len() && solve_reflection(i, &cols) {
+        if i < cols.len() && reflection_at(i, &cols) {
             return i;
         }
     }
     panic!()
 }
 
-fn solve_reflection(row: usize, matrix: &[Vec<char>]) -> bool {
+fn reflection_at(row: usize, matrix: &[Vec<char>]) -> bool {
     let (upper, lower) = matrix.split_at(row);
 
     let mut found_smudge = false;
@@ -85,9 +83,9 @@ fn test_reflector() {
 ..##..##.
 #.#.##.#.";
     let (rows, cols) = parse_matrices(input);
-    assert!(solve_reflection(3, &rows));
-    assert!(!solve_reflection(4, &rows));
-    assert!(!solve_reflection(5, &cols));
+    assert!(reflection_at(3, &rows));
+    assert!(!reflection_at(4, &rows));
+    assert!(!reflection_at(5, &cols));
 }
 
 #[test]
@@ -100,8 +98,8 @@ fn test_reflector2() {
 ..##..###
 #....#..#";
     let (rows, cols) = parse_matrices(input);
-    assert!(solve_reflection(1, &rows));
-    assert!(!solve_reflection(4, &rows));
+    assert!(reflection_at(1, &rows));
+    assert!(!reflection_at(4, &rows));
 }
 
 #[test]

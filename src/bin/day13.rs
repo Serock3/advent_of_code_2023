@@ -12,73 +12,37 @@ fn solve(input: &str) -> usize {
     input.split("\n\n").map(solve_pattern).sum()
 }
 
-fn solve_pattern(input: &str) -> usize {
+fn parse_matrices(input: &str) -> (Vec<Vec<char>>, Vec<Vec<char>>) {
     let rows = input
         .lines()
         .map(|line| line.chars().collect_vec())
         .collect_vec();
     let cols = transpose(rows.clone());
+    (rows, cols)
+}
 
-    let mut col_reflection: Vec<(usize, Rev<Iter<'_, Vec<char>>>)> = vec![];
-    let mut row_reflection: Vec<(usize, Rev<Iter<'_, Vec<char>>>)> = vec![];
-    let mut row_iter = rows.iter().enumerate().fuse();
-    let mut col_iter = cols.iter().enumerate().fuse();
-    loop {
-        match row_iter.next() {
-            Some((i_row, row)) => {
-                for ref_i in (0..row_reflection.len()).rev() {
-                    let (start_row, it) = &mut row_reflection[ref_i];
-                    let remove = match it.next() {
-                        Some(reflected_row) => reflected_row != row,
-                        None => return *start_row * 100,
-                    };
-                    if remove {
-                        row_reflection.remove(ref_i);
-                    }
-                }
+fn solve_pattern(input: &str) -> usize {
+    let (rows, cols) = parse_matrices(input);
 
-                if let Some(next_row) = rows.get(i_row + 1) {
-                    if row == next_row {
-                        let rev = rows[0..i_row + 1].iter().rev();
-                        row_reflection.push((i_row + 1, rev))
-                    }
-                }
-            }
-            None => {
-                if !row_reflection.is_empty() {
-                    assert_eq!(row_reflection.len(), 1);
-                    return row_reflection[0].0 * 100;
-                }
-            }
+    for i in 1.. {
+        if i < rows.len() && reflection_at(i, &rows) {
+            return i * 100;
         }
-        match col_iter.next() {
-            Some((i_col, col)) => {
-                for ref_i in (0..col_reflection.len()).rev() {
-                    let (start_col, it) = &mut col_reflection[ref_i];
-                    let remove = match it.next() {
-                        Some(reflected_col) => reflected_col != col,
-                        None => return *start_col,
-                    };
-                    if remove {
-                        col_reflection.remove(ref_i);
-                    }
-                }
-
-                if let Some(next_col) = cols.get(i_col + 1) {
-                    if col == next_col {
-                        let rev = cols[0..i_col + 1].iter().rev();
-                        col_reflection.push((i_col + 1, rev))
-                    }
-                }
-            }
-            None => {
-                if !col_reflection.is_empty() {
-                    assert_eq!(col_reflection.len(), 1);
-                    return col_reflection[0].0;
-                }
-            }
+        if i < cols.len() && reflection_at(i, &cols) {
+            return i;
         }
     }
+    panic!()
+}
+
+fn reflection_at(row: usize, matrix: &[Vec<char>]) -> bool {
+    let (upper, lower) = matrix.split_at(row);
+
+    upper
+        .iter()
+        .rev()
+        .zip(lower)
+        .all(|(reflected_line, line)| reflected_line == line)
 }
 
 fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
