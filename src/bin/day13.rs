@@ -13,31 +13,72 @@ fn solve(input: &str) -> usize {
 }
 
 fn solve_pattern(input: &str) -> usize {
-    let lines = input.lines().collect_vec();
+    let rows = input
+        .lines()
+        .map(|line| line.chars().collect_vec())
+        .collect_vec();
+    let cols = transpose(rows.clone());
 
-    let mut horizontal_reflection: Vec<(usize, Rev<Iter<'_, &str>>)> = vec![];
-    for (i_line, line) in lines.iter().enumerate() {
-        for ref_i in 0..horizontal_reflection.len() {
-            let (start_line, it) = &mut horizontal_reflection[ref_i];
-            let remove = match it.next() {
-                Some(reflected_line) => reflected_line != line,
-                None => return *start_line,
-            };
-            if remove {
-                horizontal_reflection.remove(ref_i);
+    let mut col_reflection: Vec<(usize, Rev<Iter<'_, Vec<char>>>)> = vec![];
+    let mut row_reflection: Vec<(usize, Rev<Iter<'_, Vec<char>>>)> = vec![];
+    let mut row_iter = rows.iter().enumerate().fuse();
+    let mut col_iter = cols.iter().enumerate().fuse();
+    loop {
+        match row_iter.next() {
+            Some((i_row, row)) => {
+                for ref_i in (0..row_reflection.len()).rev() {
+                    let (start_row, it) = &mut row_reflection[ref_i];
+                    let remove = match it.next() {
+                        Some(reflected_row) => reflected_row != row,
+                        None => return *start_row * 100,
+                    };
+                    if remove {
+                        row_reflection.remove(ref_i);
+                    }
+                }
+
+                if let Some(next_row) = rows.get(i_row + 1) {
+                    if row == next_row {
+                        let rev = rows[0..i_row + 1].iter().rev();
+                        row_reflection.push((i_row + 1, rev))
+                    }
+                }
+            }
+            None => {
+                if !row_reflection.is_empty() {
+                    assert_eq!(row_reflection.len(), 1);
+                    return row_reflection[0].0 * 100;
+                }
             }
         }
+        match col_iter.next() {
+            Some((i_col, col)) => {
+                for ref_i in (0..col_reflection.len()).rev() {
+                    let (start_col, it) = &mut col_reflection[ref_i];
+                    let remove = match it.next() {
+                        Some(reflected_col) => reflected_col != col,
+                        None => return *start_col,
+                    };
+                    if remove {
+                        col_reflection.remove(ref_i);
+                    }
+                }
 
-        if let Some(next_line) = lines.get(i_line + 1) {
-            if line == next_line {
-                let rev = lines[0..i_line + 1].iter().rev();
-                horizontal_reflection.push((i_line + 1, rev))
+                if let Some(next_col) = cols.get(i_col + 1) {
+                    if col == next_col {
+                        let rev = cols[0..i_col + 1].iter().rev();
+                        col_reflection.push((i_col + 1, rev))
+                    }
+                }
+            }
+            None => {
+                if !col_reflection.is_empty() {
+                    assert_eq!(col_reflection.len(), 1);
+                    return col_reflection[0].0;
+                }
             }
         }
     }
-
-    assert_eq!(horizontal_reflection.len(), 1);
-    horizontal_reflection[0].0 * 100
 }
 
 fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
