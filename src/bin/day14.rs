@@ -10,32 +10,32 @@ fn main() {
 fn solve(input: &str) -> usize {
     let matrix = parse_char_matrix(input);
 
-    matrix.columns().into_iter().map(fun_name).sum()
+    matrix.columns().into_iter().map(solve_column).sum()
 }
 
-fn fun_name(col: ArrayView1<char>) -> usize {
+fn solve_column(col: ArrayView1<char>) -> usize {
+    // println!("\ncol {col}");
     let cube_rock_positions = col.iter().positions(|c| *c == '#').map(|i| i + 1);
     let north_wall = std::iter::once(0);
-    let south_wall = std::iter::once(col.len());
+    let south_wall = std::iter::once(col.len() + 1);
     let sum = north_wall
         .chain(cube_rock_positions)
         .chain(south_wall)
-        .tuples()
-        .map(|(higher_cube_rock, lower_cube_rock)| {
-            let x = col.slice(s![higher_cube_rock..lower_cube_rock - 1]);
-            print!("{x} ");
-            let sum: usize = x
+        .tuple_windows()
+        .map(|(start, stop)| {
+            let sub_col = col.slice(s![(start..stop - 1)]);
+            // println!("sub_col {sub_col}");
+            let sum: usize = sub_col
                 .iter()
                 .filter(|c| **c == 'O')
                 .enumerate()
-                .map(|(i, _)| col.len() - higher_cube_rock - i)
+                .map(|(i, _)| col.len() - start - i)
                 .sum();
 
-            print!("sum: {sum} ");
+            // print!("sum: {sum} ");
             sum
         })
         .sum();
-    println!();
 
     sum
 }
