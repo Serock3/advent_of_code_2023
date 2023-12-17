@@ -8,36 +8,45 @@ fn main() {
 }
 
 fn solve(input: &str) -> usize {
-    let matrix = parse_char_matrix(input);
+    let mut matrix = parse_char_matrix(input);
 
-    matrix.columns().into_iter().map(solve_column).sum()
+    matrix.axis_iter_mut(Axis(1)).for_each(lean_north);
+    calc_load(&matrix)
 }
 
-fn solve_column(col: ArrayView1<char>) -> usize {
-    // println!("\ncol {col}");
-    let cube_rock_positions = col.iter().positions(|c| *c == '#').map(|i| i + 1);
-    let north_wall = std::iter::once(0);
-    let south_wall = std::iter::once(col.len() + 1);
-    let sum = north_wall
-        .chain(cube_rock_positions)
-        .chain(south_wall)
-        .tuple_windows()
-        .map(|(start, stop)| {
-            let sub_col = col.slice(s![(start..stop - 1)]);
-            // println!("sub_col {sub_col}");
-            let sum: usize = sub_col
-                .iter()
-                .filter(|c| **c == 'O')
-                .enumerate()
-                .map(|(i, _)| col.len() - start - i)
-                .sum();
+fn lean_north(mut col: ArrayViewMut1<char>) {
+    let mut start = 0;
 
-            // print!("sum: {sum} ");
-            sum
+    let slices = col
+        .iter()
+        .positions(|c| *c == '#')
+        .chain(std::iter::once(col.len()))
+        .map(|stop| {
+            let slice = s![(start..stop)];
+            start = stop + 1;
+            slice
         })
-        .sum();
+        .collect_vec();
 
-    sum
+    for slice in slices {
+        let sub_col = col.slice_mut(slice);
+        let num_rolling_stones = sub_col.iter().filter(|c| **c == 'O').count();
+        let (mut filled, mut empty) = sub_col.split_at(Axis(0), num_rolling_stones);
+        filled.fill('O');
+        empty.fill('.');
+    }
+}
+
+fn calc_load(matrix: &ArrayBase<ndarray::OwnedRepr<char>, Dim<[usize; 2]>>) -> usize {
+    matrix.columns().into_iter().map(calc_load_column).sum()
+}
+
+fn calc_load_column(col: ArrayView1<char>) -> usize {
+    let len = col.len();
+    col.iter()
+        .enumerate()
+        .filter_map(|(i, c)| if *c == 'O' { Some(col.len() - i) } else { None })
+        .sum()
 }
 
 #[test]
