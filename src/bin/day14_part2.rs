@@ -15,15 +15,14 @@ fn solve(input: &str) -> usize {
     loop {
         spin(&mut matrix);
         // dbg!(&matrix);
-        for (i, prev_m) in history.iter().enumerate() {
-            if matrix == prev_m {
-                let looping_sequence = &history[i..];
-                let remaining_spins = 1_000_000_000 - history.len() - 1;
-                let stop_index = remaining_spins % looping_sequence.len();
+        if let Some(i) = history.iter().position(|prev_m| matrix == *prev_m) {
+            let looping_sequence = &history[i..];
+            let remaining_spins = 1_000_000_000 - history.len() - 1;
+            let stop_index = remaining_spins % looping_sequence.len();
 
-                return calc_load(&looping_sequence[stop_index]);
-            }
+            return calc_load(&looping_sequence[stop_index]);
         }
+
         history.push(matrix.clone());
     }
 }
