@@ -50,19 +50,18 @@ fn spin(matrix: &mut Array2<char>) {
 fn lean(mut col: ArrayViewMut1<char>, backwards: bool) {
     let mut start = 0;
 
-    let mut slices = vec![];
-    loop {
-        let Some(blocker) = col.iter().position(|c| *c == '#') else {
-            slices.push(col);
-            break;
-        };
-        let (a, b) = col.split_at(Axis(0), blocker);
-        col = b.split_at(Axis(0), 1).1;
-        slices.push(a);
-    }
-
-    slices.into_par_iter().for_each(|sub_col| {
-        // let sub_col = col.slice_mut(slice);
+    let slices = col
+        .iter()
+        .positions(|c| *c == '#')
+        .chain(std::iter::once(col.len()))
+        .map(|stop| {
+            let slice = s![(start..stop)];
+            start = stop + 1;
+            slice
+        })
+        .collect_vec();
+    for slice in slices {
+        let sub_col = col.slice_mut(slice);
         let len = sub_col.len();
         let num_rolling_stones = sub_col.iter().filter(|c| **c == 'O').count();
         let (mut filled, mut empty) = {
@@ -75,7 +74,7 @@ fn lean(mut col: ArrayViewMut1<char>, backwards: bool) {
         };
         filled.fill('O');
         empty.fill('.');
-    });
+    }
 }
 
 fn calc_load(matrix: &ArrayBase<ndarray::OwnedRepr<char>, Dim<[usize; 2]>>) -> usize {
