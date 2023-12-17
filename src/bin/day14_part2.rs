@@ -31,19 +31,15 @@ fn solve(input: &str) -> usize {
 fn spin(matrix: &mut Array2<char>) {
     matrix
         .axis_iter_mut(Axis(1))
-        .into_par_iter()
         .for_each(|col| lean(col, false));
     matrix
         .axis_iter_mut(Axis(0))
-        .into_par_iter()
         .for_each(|row| lean(row, false));
     matrix
         .axis_iter_mut(Axis(1))
-        .into_par_iter()
         .for_each(|col| lean(col, true));
     matrix
         .axis_iter_mut(Axis(0))
-        .into_par_iter()
         .for_each(|row| lean(row, true));
 }
 
