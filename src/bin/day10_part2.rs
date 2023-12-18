@@ -10,27 +10,10 @@ fn main() {
     println!("Answer: {}", solve(&input));
 }
 
-#[derive(Debug, Clone, PartialEq)]
-enum Direction {
-    North,
-    East,
-    South,
-    West,
-}
-use Direction::*;
-
-type Pos = (i32, i32);
-
-impl From<&Direction> for Pos {
-    fn from(value: &Direction) -> Self {
-        match value {
-            Direction::North => (-1, 0),
-            Direction::East => (0, 1),
-            Direction::South => (1, 0),
-            Direction::West => (0, -1),
-        }
-    }
-}
+use advent_of_code::{
+    Direction::{self, *},
+    Pos,
+};
 
 fn solve(input: &str) -> u32 {
     let char_matrix = input

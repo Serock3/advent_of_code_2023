@@ -34,3 +34,24 @@ pub fn parse_char_matrix(input: &str) -> Array2<char> {
     let chars = input.chars().filter(|c| *c != '\n');
     Array::from_iter(chars).into_shape(shape).unwrap()
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Direction {
+    North,
+    East,
+    South,
+    West,
+}
+
+pub type Pos = (i32, i32);
+
+impl From<&Direction> for Pos {
+    fn from(value: &Direction) -> Self {
+        match value {
+            Direction::North => (-1, 0),
+            Direction::East => (0, 1),
+            Direction::South => (1, 0),
+            Direction::West => (0, -1),
+        }
+    }
+}
