@@ -35,7 +35,7 @@ pub fn parse_char_matrix(input: &str) -> Array2<char> {
     Array::from_iter(chars).into_shape(shape).unwrap()
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Direction {
     North,
     East,
