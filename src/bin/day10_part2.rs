@@ -47,7 +47,7 @@ fn find_s(char_matrix: &[Vec<char>]) -> Pos {
 }
 
 fn follow_pipe(mut pos: Pos, mut dir: Direction, char_matrix: &[Vec<char>]) -> Option<u32> {
-    let start_dir = dir.clone();
+    let start_dir = dir;
 
     // Twice the area enclosed by the looping pipes
     let mut twice_signed_enclosed_erea = 0;
