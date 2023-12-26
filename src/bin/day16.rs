@@ -129,12 +129,11 @@ fn handle_beam(
     let pos = &inbound_beam.start;
     match inbound_beam.dir {
         North => {
-            let mut beam_area = s![..=pos.0, pos.1];
+            let mut beam_area = s![..=pos.0; -1, pos.1];
 
             let maybe_new_beams = matrix
                 .slice(beam_area)
                 .iter()
-                .rev()
                 .find_position(|&&c| c != '.')
                 .map(|(offset, c)| {
                     
@@ -178,12 +177,11 @@ fn handle_beam(
             (maybe_new_beams, beam_area)
         }
         West => {
-            let mut beam_area = s![pos.0, ..=pos.1];
+            let mut beam_area = s![pos.0, ..=pos.1; -1];
 
             let maybe_new_beams = matrix
                 .slice(beam_area)
                 .iter()
-                .rev()
                 .find_position(|&&c| c != '.')
                 .map(|(offset, c)| {
                     let start_col = pos.1 - offset;
@@ -250,41 +248,41 @@ mod tests {
         dir: East,
     }, Beam {
         dir: North,
-        start: Pos(6, 4)
+        start: Pos(5, 4)
     },
-    s![6, 0..4])]
+    s![6, 0..=4])]
     #[case(Beam {
         start: Pos(0, 4),
         dir: South,
     }, Beam {
         dir: East,
-        start: Pos(1, 4)
+        start: Pos(1, 5)
     },
-    s![0..1, 4])]
+    s![0..=1, 4])]
     #[case(Beam {
         start: Pos(9, 0),
         dir: East,
     }, Beam {
         dir: North,
-        start: Pos(9, 2)
+        start: Pos(8, 2)
     },
-    s![9, 0..2])]
+    s![9, 0..=2])]
     #[case(Beam {
         dir: North,
         start: Pos(9, 8),
     }, Beam {
         dir: North,
-        start: Pos(3, 8)
+        start: Pos(2, 8)
     },
-    s![3..9, 8])]
+    s![3..=9, 8])]
     #[case(Beam {
         dir: West,
         start: Pos(1, 9),
     }, Beam {
         dir: North,
-        start: Pos(1, 4)
+        start: Pos(0, 4)
     },
-    s![1, 4..9])]
+    s![1, 4..=9])]
     pub(crate) fn test_diag_reflection(
         #[case] inbound_beam: Beam,
         #[case] reflected_beam: Beam,
@@ -313,15 +311,21 @@ mod tests {
     #[rstest]
     #[case(Beam {
         dir: South,
-        start: Pos(0, 1),
+        start: Pos(1, 1),
     }, 
-    &[West, East],
-    Pos(7, 1),
-    s![0..7, 1])]
+    Beam {
+        dir: West,
+        start: Pos(7, 0),
+    },
+    Beam {
+        dir: East,
+        start: Pos(7, 2),
+    },
+    s![1..=7, 1])]
     pub(crate) fn test_flat_reflection(
         #[case] inbound_beam: Beam,
-        #[case] out_dirs: &'static [Direction],
-        #[case] end_pos: Pos<usize>,
+        #[case] reflected_beam1: Beam,
+        #[case] reflected_beam2: Beam,
         #[case] beam_area: SliceInfo<[SliceInfoElem; 2], Dim<[usize; 2]>, Dim<[usize; 1]>>,
     ) {
         let input = r".|...\....
@@ -340,9 +344,9 @@ mod tests {
         assert_eq!(*new_beam_area, *beam_area);
         let new_beams = &mut maybe_new_beams.unwrap();
         let refl = new_beams.next().unwrap();
-        assert_eq!(refl, Beam{dir: out_dirs[0],start: end_pos.clone()});
+        assert_eq!(refl, reflected_beam1);
         let refl = new_beams.next().unwrap();
-        assert_eq!(refl, Beam{dir: out_dirs[1],start: end_pos});
+        assert_eq!(refl, reflected_beam2);
         assert_eq!(new_beams.next(), None);
     }
 
