@@ -16,7 +16,8 @@ use ndarray::SliceInfo;
 use ndarray::SliceInfoElem;
 
 fn main() {
-    println!("Answer: {}", solve(&get_input()));
+    println!("Answer1: {}", solve1(&get_input()));
+    println!("Answer2: {}", solve2(&get_input()));
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -55,37 +56,69 @@ struct Beam {
     dir: Direction,
 }
 
-fn solve(input: &str) -> usize {
+fn solve1(input: &str) -> usize {
+    let initial_beam = Beam {
+        start: Pos(0, 0),
+        dir: East,
+    };
     let matrix = advent_of_code::parse_char_matrix(input);
+    solve_initial(&matrix, initial_beam)
+}
+
+fn solve2(input: &str) -> usize {
+    let matrix = advent_of_code::parse_char_matrix(input);
+    let (len_row, len_col) = matrix.dim();
+
+    let left_side = (0..len_row).map(|row| Beam {
+        start: Pos(row, 0),
+        dir: East,
+    });
+    let right_side = (0..len_row).map(|row| Beam {
+        start: Pos(row, len_col-1),
+        dir: West,
+    });
+    let upper_side = (0..len_col).map(|col| Beam {
+        start: Pos(0, col),
+        dir: West,
+    });
+    let lower_side = (0..len_col).map(|col| Beam {
+        start: Pos(len_row-1, col),
+        dir: West,
+    });
+
+    left_side.chain(right_side).chain(upper_side).chain(lower_side).map(|initial_beam|{
+        solve_initial(&matrix, initial_beam)
+    }).max().unwrap()
+}
+
+fn solve_initial(matrix: &Array2<char>, initial_beam: Beam) -> usize {
     let mut energized = Array2::from_elem(matrix.raw_dim(), false);
 
     let mut visited = HashSet::new();
 
-    let mut queue = vec![Beam {
-        start: Pos(0, 0),
-        dir: East,
-    }];
+    let mut queue = vec![initial_beam];
 
     while let Some(inbound_beam) = queue.pop() {
         // dbg!(&inbound_beam);
         if !visited.insert(inbound_beam.clone()) {
             continue;
         }
-        let (maybe_reflections, beam_area) = handle_beam(&inbound_beam, &matrix);
+        let (maybe_reflections, beam_area) = handle_beam(&inbound_beam, matrix);
         if let Some(reflections) = maybe_reflections {
             queue.extend(reflections);
         }
         energized.slice_mut(beam_area).fill(true);
     }
-    for row in energized.rows(){
-        for c in row.map(|b|if *b {'#'}else{'.'}){
-            print!("{c}")
-        }
-        println!()
-    }
+    // for row in energized.rows(){
+    //     for c in row.map(|b|if *b {'#'}else{'.'}){
+    //         print!("{c}")
+    //     }
+    //     println!()
+    // }
     energized.iter().filter(|heated| **heated).count()
 }
 
+#[allow(clippy::type_complexity)]
 fn handle_beam(
     inbound_beam: &Beam,
     matrix: &Array2<char>,
@@ -325,6 +358,6 @@ mod tests {
 .-.-/..|..
 .|....-|.\
 ..//.|....";
-        assert_eq!(solve(input), 46)
+        assert_eq!(solve1(input), 46)
     }
 }
