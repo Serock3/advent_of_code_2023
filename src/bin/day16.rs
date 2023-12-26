@@ -79,11 +79,11 @@ fn solve2(input: &str) -> usize {
     });
     let upper_side = (0..len_col).map(|col| Beam {
         start: Pos(0, col),
-        dir: West,
+        dir: South,
     });
     let lower_side = (0..len_col).map(|col| Beam {
         start: Pos(len_row-1, col),
-        dir: West,
+        dir: North,
     });
 
     left_side.chain(right_side).chain(upper_side).chain(lower_side).map(|initial_beam|{
@@ -359,5 +359,20 @@ mod tests {
 .|....-|.\
 ..//.|....";
         assert_eq!(solve1(input), 46)
+    }
+
+    #[test]
+    pub(crate) fn test_example2() {
+        let input = r".|...\....
+|.-.\.....
+.....|-...
+........|.
+..........
+.........\
+..../.\\..
+.-.-/..|..
+.|....-|.\
+..//.|....";
+        assert_eq!(solve2(input), 51)
     }
 }
