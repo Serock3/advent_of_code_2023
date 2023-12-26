@@ -39,14 +39,21 @@ fn solve(input: &str) -> usize {
     }];
 
     while let Some(inbound_beam) = queue.pop() {
+        // dbg!(&inbound_beam);
         if !visited.insert(inbound_beam.clone()) {
             continue;
         }
-        let (maybe_new_beams, beam_area) = handle_beam(&inbound_beam, &matrix);
-        if let Some(new_beams) = maybe_new_beams {
-            queue.extend(new_beams);
+        let (maybe_reflections, beam_area) = handle_beam(&inbound_beam, &matrix);
+        if let Some(reflections) = maybe_reflections {
+            queue.extend(reflections);
         }
         energized.slice_mut(beam_area).fill(true);
+    }
+    for row in energized.rows(){
+        for c in row.map(|b|if *b {'#'}else{'.'}){
+            print!("{c}")
+        }
+        println!()
     }
     energized.iter().filter(|heated| **heated).count()
 }
@@ -181,15 +188,45 @@ mod tests {
     }, Beam {
         dir: North,
         start: Pos(6, 4)
-    })]
+    },
+    s![6, 0..4])]
     #[case(Beam {
         start: Pos(0, 4),
         dir: South,
     }, Beam {
         dir: East,
         start: Pos(1, 4)
-    })]
-    pub(crate) fn test_reflection(#[case] inbound_beam: Beam, #[case] reflected_beam: Beam) {
+    },
+    s![0..1, 4])]
+    #[case(Beam {
+        start: Pos(9, 0),
+        dir: East,
+    }, Beam {
+        dir: North,
+        start: Pos(9, 2)
+    },
+    s![9, 0..2])]
+    #[case(Beam {
+        dir: North,
+        start: Pos(9, 8),
+    }, Beam {
+        dir: North,
+        start: Pos(3, 8)
+    },
+    s![3..9, 8])]
+    #[case(Beam {
+        dir: West,
+        start: Pos(1, 9),
+    }, Beam {
+        dir: North,
+        start: Pos(1, 4)
+    },
+    s![1, 4..9])]
+    pub(crate) fn test_diag_reflection(
+        #[case] inbound_beam: Beam,
+        #[case] reflected_beam: Beam,
+        #[case] beam_area: SliceInfo<[SliceInfoElem; 2], Dim<[usize; 2]>, Dim<[usize; 1]>>,
+    ) {
         let input = r".|...\....
 |.-.\.....
 .....|-...
@@ -202,10 +239,47 @@ mod tests {
 ..//.|....";
         let matrix = advent_of_code::parse_char_matrix(input);
 
-        let (maybe_new_beams, beam_area) = handle_beam(&inbound_beam, &matrix);
+        let (maybe_new_beams, new_beam_area) = handle_beam(&inbound_beam, &matrix);
+        assert_eq!(*new_beam_area, *beam_area);
         let new_beams = &mut maybe_new_beams.unwrap();
         let refl = new_beams.next().unwrap();
         assert_eq!(refl, reflected_beam);
+        assert_eq!(new_beams.next(), None);
+    }
+
+    #[rstest]
+    #[case(Beam {
+        dir: South,
+        start: Pos(0, 1),
+    }, 
+    &[West, East],
+    Pos(7, 1),
+    s![0..7, 1])]
+    pub(crate) fn test_flat_reflection(
+        #[case] inbound_beam: Beam,
+        #[case] out_dirs: &'static [Direction],
+        #[case] end_pos: Pos<usize>,
+        #[case] beam_area: SliceInfo<[SliceInfoElem; 2], Dim<[usize; 2]>, Dim<[usize; 1]>>,
+    ) {
+        let input = r".|...\....
+|.-.\.....
+.....|-...
+........|.
+..........
+.........\
+..../.\\..
+.-.-/..|..
+.|....-|.\
+..//.|....";
+        let matrix = advent_of_code::parse_char_matrix(input);
+
+        let (maybe_new_beams, new_beam_area) = handle_beam(&inbound_beam, &matrix);
+        assert_eq!(*new_beam_area, *beam_area);
+        let new_beams = &mut maybe_new_beams.unwrap();
+        let refl = new_beams.next().unwrap();
+        assert_eq!(refl, Beam{dir: out_dirs[0],start: end_pos.clone()});
+        let refl = new_beams.next().unwrap();
+        assert_eq!(refl, Beam{dir: out_dirs[1],start: end_pos});
         assert_eq!(new_beams.next(), None);
     }
 
