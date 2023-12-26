@@ -1,5 +1,5 @@
 use ndarray::prelude::*;
-use std::panic::Location;
+use std::{ops::Add, panic::Location};
 
 #[track_caller]
 pub fn get_input() -> String {
@@ -42,16 +42,37 @@ pub enum Direction {
     South,
     West,
 }
+use Direction::*;
 
-pub type Pos = (i32, i32);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct Pos<T>(pub T, pub T);
 
-impl From<&Direction> for Pos {
+impl<T: Add<Output = T>> Add for Pos<T> {
+    type Output = Pos<T>;
+
+    fn add(self, rhs: Pos<T>) -> Pos<T> {
+        Pos(self.0 + rhs.0, self.1 + rhs.1)
+    }
+}
+
+impl Add<Pos<isize>> for Pos<usize> {
+    type Output = Pos<usize>;
+
+    fn add(self, rhs: Pos<isize>) -> Pos<usize> {
+        Pos(
+            self.0.saturating_add_signed(rhs.0),
+            self.1.saturating_add_signed(rhs.1),
+        )
+    }
+}
+
+impl From<&Direction> for Pos<isize> {
     fn from(value: &Direction) -> Self {
         match value {
-            Direction::North => (-1, 0),
-            Direction::East => (0, 1),
-            Direction::South => (1, 0),
-            Direction::West => (0, -1),
+            North => Pos(-1, 0),
+            East => Pos(0, 1),
+            South => Pos(1, 0),
+            West => Pos(0, -1),
         }
     }
 }

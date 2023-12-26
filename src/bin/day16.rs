@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use std::f32::consts::E;
 use std::ops::Add;
 
+use advent_of_code::Pos;
 use advent_of_code::get_input;
 use advent_of_code::Direction;
 use advent_of_code::Direction::*;
@@ -20,35 +21,7 @@ fn main() {
     println!("Answer2: {}", solve2(&get_input()));
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-struct Pos<T>(T, T);
 
-impl<T: Add<Output = T>> Add for Pos<T> {
-    type Output = Pos<T>;
-
-    fn add(self, rhs: Pos<T>) -> Pos<T> {
-        Pos(self.0 + rhs.0, self.1 +rhs.1)
-    }
-}
-
-impl Add<Pos<isize>> for Pos<usize> {
-    type Output = Pos<usize>;
-
-    fn add(self, rhs: Pos<isize>) -> Pos<usize> {
-        Pos(self.0.saturating_add_signed(rhs.0) , self.1.saturating_add_signed(rhs.1) )
-    }
-}
-
-impl From<&Direction> for Pos<isize> {
-    fn from(value: &Direction) -> Self {
-        match value {
-            North => Pos(-1, 0),
-            East => Pos(0, 1),
-            South => Pos(1, 0),
-            West => Pos(0, -1),
-        }
-    }
-}
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Beam {
@@ -202,7 +175,7 @@ fn new_beams(
 ) -> impl Iterator<Item = Beam> {
     let next_dirs: &[Direction] = get_reflection_dir(inbound_dir, *c);
     next_dirs.iter().cloned().map(move |dir| Beam {
-        start: mirror_pos.clone() + Pos::from(&dir),
+        start: mirror_pos + Pos::from(&dir),
         dir,
     })
 }
