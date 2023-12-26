@@ -15,7 +15,7 @@ use advent_of_code::{
     Pos,
 };
 
-fn solve(input: &str) -> u32 {
+fn solve(input: &str) -> usize {
     let char_matrix = input
         .lines()
         .map(|line| line.chars().collect_vec())
@@ -30,14 +30,14 @@ fn solve(input: &str) -> u32 {
         .unwrap()
 }
 
-fn find_s(char_matrix: &[Vec<char>]) -> Pos {
+fn find_s(char_matrix: &[Vec<char>]) -> Pos<isize> {
     char_matrix
         .iter()
         .enumerate()
         .find_map(|(r, row)| {
             row.iter().enumerate().find_map(|(c, character)| {
                 if *character == 'S' {
-                    Some((r.try_into().unwrap(), c.try_into().unwrap()))
+                    Some(Pos(r.try_into().unwrap(), c.try_into().unwrap()))
                 } else {
                     None
                 }
@@ -46,16 +46,20 @@ fn find_s(char_matrix: &[Vec<char>]) -> Pos {
         .unwrap()
 }
 
-fn follow_pipe(mut pos: Pos, mut dir: Direction, char_matrix: &[Vec<char>]) -> Option<u32> {
+fn follow_pipe(
+    mut pos: Pos<isize>,
+    mut dir: Direction,
+    char_matrix: &[Vec<char>],
+) -> Option<usize> {
     let start_dir = dir;
 
     // Twice the area enclosed by the looping pipes
-    let mut twice_signed_enclosed_erea = 0;
+    let mut signed_enclosed_erea = 0;
     // To account for the area of the pipes, we need the number of them
     let mut num_pipes = 0;
 
     loop {
-        twice_signed_enclosed_erea += twise_area_change(pos, &dir);
+        signed_enclosed_erea += twise_area_change(pos, &dir);
 
         pos = step(pos, &dir);
         let pipe = get_pipe(pos, char_matrix)?;
@@ -75,7 +79,7 @@ fn follow_pipe(mut pos: Pos, mut dir: Direction, char_matrix: &[Vec<char>]) -> O
             (West, '-') => West,
             (West, 'L') => North,
             (West, 'F') => South,
-            (dir, 'S') => return Some(get_gap_area(twice_signed_enclosed_erea / 2, num_pipes)),
+            (dir, 'S') => return Some(get_gap_area(signed_enclosed_erea, num_pipes)),
             // Hit a stop
             _ => return None,
         };
@@ -86,8 +90,8 @@ fn follow_pipe(mut pos: Pos, mut dir: Direction, char_matrix: &[Vec<char>]) -> O
 ///
 /// Almost half the pipes own area is inside the curve. A little less because the
 /// inside perimiter of the pipes is smaller than the outside perimiter.
-fn get_gap_area(signed_enclosed_area: i32, num_pipes: u32) -> u32 {
-    let unsigned_area: u32 = signed_enclosed_area.abs().try_into().unwrap();
+fn get_gap_area(signed_enclosed_area: isize, num_pipes: usize) -> usize {
+    let unsigned_area: usize = signed_enclosed_area.abs().try_into().unwrap();
     unsigned_area - num_pipes / 2 + 1
 }
 
@@ -96,20 +100,19 @@ fn get_gap_area(signed_enclosed_area: i32, num_pipes: u32) -> u32 {
 /// which is corrected for by [`get_gap_area`].
 ///
 /// See https://en.wikipedia.org/wiki/Green%27s_theorem#Area_calculation
-fn twise_area_change(pos: Pos, dir: &Direction) -> i32 {
-    let (dr, dc) = <Pos>::from(dir);
-    let (dx, dy) = (dc, -dr);
-    let (x, y) = (pos.1, -pos.0);
-    x * dy - y * dx
+fn twise_area_change(pos: Pos<isize>, dir: &Direction) -> isize {
+    let x = pos.0;
+    let dy = Pos::from(dir).1;
+    x * dy
 }
 
-fn step(s_pos: Pos, dir: &Direction) -> Pos {
-    let (r, c) = <Pos>::from(dir);
-    (s_pos.0 + r, s_pos.1 + c)
+fn step(s_pos: Pos<isize>, dir: &Direction) -> Pos<isize> {
+    let Pos(r, c) = Pos::from(dir);
+    Pos(s_pos.0 + r, s_pos.1 + c)
 }
 
 /// Indexes into char matrix and gets pipe. Filters '.' chars.
-fn get_pipe(pos: Pos, char_matrix: &[Vec<char>]) -> Option<char> {
+fn get_pipe(pos: Pos<isize>, char_matrix: &[Vec<char>]) -> Option<char> {
     let row = usize::try_from(pos.0).ok()?;
     let col = usize::try_from(pos.1).ok()?;
 
