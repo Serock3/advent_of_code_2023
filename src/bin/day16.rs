@@ -180,27 +180,27 @@ fn new_beams(
     })
 }
 
-fn get_reflection_dir(inbond_dir: Direction, c: char) -> &'static [Direction] {
+fn get_reflection_dir(inbound_dir: Direction, c: char) -> &'static [Direction] {
     match c {
-        '/' => match inbond_dir {
+        '/' => match inbound_dir {
             North => &[East],
             East => &[North],
             South => &[West],
             West => &[South],
         },
-        '\\' => match inbond_dir {
+        '\\' => match inbound_dir {
             North => &[West],
             East => &[South],
             South => &[East],
             West => &[North],
         },
-        '|' => match inbond_dir {
+        '|' => match inbound_dir {
             North => &[North],
             East => &[North, South],
             South => &[South],
             West => &[North, South],
         },
-        '-' => match inbond_dir {
+        '-' => match inbound_dir {
             North => &[West, East],
             East => &[East],
             South => &[West, East],

@@ -54,12 +54,12 @@ fn follow_pipe(
     let start_dir = dir;
 
     // Twice the area enclosed by the looping pipes
-    let mut signed_enclosed_erea = 0;
+    let mut signed_enclosed_area = 0;
     // To account for the area of the pipes, we need the number of them
     let mut num_pipes = 0;
 
     loop {
-        signed_enclosed_erea += twise_area_change(pos, &dir);
+        signed_enclosed_area += twice_area_change(pos, &dir);
 
         pos = step(pos, &dir);
         let pipe = get_pipe(pos, char_matrix)?;
@@ -79,17 +79,17 @@ fn follow_pipe(
             (West, '-') => West,
             (West, 'L') => North,
             (West, 'F') => South,
-            (dir, 'S') => return Some(get_gap_area(signed_enclosed_erea, num_pipes)),
+            (dir, 'S') => return Some(get_gap_area(signed_enclosed_area, num_pipes)),
             // Hit a stop
             _ => return None,
         };
     }
 }
 
-/// Get the total enclosed area by the pipes, encounting for their own thickness.
+/// Get the total enclosed area by the pipes, accounting for their own thickness.
 ///
 /// Almost half the pipes own area is inside the curve. A little less because the
-/// inside perimiter of the pipes is smaller than the outside perimiter.
+/// inside perimeter of the pipes is smaller than the outside perimeter.
 fn get_gap_area(signed_enclosed_area: isize, num_pipes: usize) -> usize {
     let unsigned_area: usize = signed_enclosed_area.abs().try_into().unwrap();
     unsigned_area - num_pipes / 2 + 1
@@ -100,7 +100,7 @@ fn get_gap_area(signed_enclosed_area: isize, num_pipes: usize) -> usize {
 /// which is corrected for by [`get_gap_area`].
 ///
 /// See https://en.wikipedia.org/wiki/Green%27s_theorem#Area_calculation
-fn twise_area_change(pos: Pos<isize>, dir: &Direction) -> isize {
+fn twice_area_change(pos: Pos<isize>, dir: &Direction) -> isize {
     let x = pos.0;
     let dy = Pos::from(dir).1;
     x * dy
